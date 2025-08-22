@@ -1,0 +1,48 @@
+// ---------- schema.prisma ----------
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ChainKind {
+  EVM
+  SOLANA
+  NATIVE
+}
+
+model Coin {
+  id        String   @id @default(uuid())
+  chainKind ChainKind
+  chainId   Int?
+  address   String?
+  slug      String   @unique
+  symbol    String
+  name      String
+  logoURI   String?
+  sources   String[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // ilişkiler
+  votes     DailyVote[]
+
+  @@index([symbol])
+  @@index([name])
+  @@unique([chainId, address])
+}
+
+model DailyVote {
+  id        String   @id @default(uuid())
+  coinId    String
+  dateYmd   String   // YYYY-MM-DD (Europe/Istanbul)
+  votes     Int      @default(0)
+  coin      Coin     @relation(fields: [coinId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([coinId, dateYmd])
+  @@index([dateYmd])
+}

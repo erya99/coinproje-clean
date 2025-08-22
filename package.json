@@ -1,0 +1,43 @@
+{
+  "name": "shill-vote",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prisma:gen": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "reindex": "tsx scripts/fetch_tokenlists.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "@upstash/ratelimit": "^1.0.0",
+    "@upstash/redis": "^1.28.4",
+    "class-variance-authority": "^0.7.0",
+    "dlv": "^1.1.3",
+    "dotenv": "^17.2.1",
+    "framer-motion": "^11.0.0",
+    "lucide-react": "^0.452.0",
+    "next": "^14.2.5",
+    "next-seo": "^6.5.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.11",
+    "@types/prop-types": "^15.7.15",
+    "@types/react": "^18.3.23",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.4.21",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^14.2.5",
+    "postcss": "^8.5.6",
+    "prisma": "^5.22.0",
+    "tailwindcss": "^3.4.17",
+    "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.4.5"
+  }
+}
