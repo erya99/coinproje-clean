@@ -1,3 +1,6 @@
+// app/page.tsx
+export const dynamic = 'force-dynamic'; // cache kapat: her istekte SSR
+
 import { prisma } from '../lib/prisma';
 import type { Prisma } from '@prisma/client';
 import CoinCard from '../components/CoinCard';
