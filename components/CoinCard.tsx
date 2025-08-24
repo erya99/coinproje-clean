@@ -6,7 +6,7 @@ type Props = {
   logo?: string | null;
   name: string;
   symbol: string;
-  votes: number;
+  votes?: number;
 };
 
 export default function CoinCard({ href, logo, name, symbol, votes }: Props) {
@@ -26,10 +26,11 @@ export default function CoinCard({ href, logo, name, symbol, votes }: Props) {
           <div className="truncate font-medium">{name}</div>
           <div className="text-xs text-muted-foreground">{symbol}</div>
         </div>
-
+          {typeof votes === 'number' && (
         <div className="ml-auto rounded-lg bg-primary/15 px-2 py-1 text-xs text-primary">
           {votes.toLocaleString('tr-TR')} oy
         </div>
+        )}
       </div>
     </Link>
   );
