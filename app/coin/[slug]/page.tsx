@@ -76,7 +76,6 @@ export default async function CoinDetailPage({ params }: PageProps) {
       <VoteButton coinId={coin.id} />
 
       <p className="mt-8 text-xs text-muted-foreground">
-        © {new Date().getFullYear()} ShillVote — finansal tavsiye değildir.
       </p>
     </>
   );
