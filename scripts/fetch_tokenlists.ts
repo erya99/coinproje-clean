@@ -418,18 +418,16 @@ export async function reindexTokens(): Promise<number> {
     })();
 
     try {
+      // Slug-based upsert (slug zaten unique)
       await prisma.coin.upsert({
-        where: { 
-          chainId_address: { 
-            chainId: normalizedChainId,
-            address: r.address 
-          }
-        },
+        where: { slug },
         update: {
           name: r.name.trim(),
           symbol: r.symbol.trim(),
           logoURI: r.logoURI,
-          slug,
+          chainId: normalizedChainId,
+          address: r.address,
+          chainKind: r.chain,
           updatedAt: new Date(),
         },
         create: {
