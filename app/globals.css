@@ -1,4 +1,45 @@
-body { background: #fffbcc !important; }
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Varsayılan: dark */
+:root {
+  --background: 48 33% 6%;
+  --foreground: 48 20% 96%;
+
+  --card: 48 20% 8%;
+  --card-foreground: 48 20% 96%;
+
+  --primary: 155 60% 45%;               /* yeşil vurgu */
+  --primary-foreground: 0 0% 100%;
+
+  --muted: 48 18% 14%;
+  --muted-foreground: 48 10% 70%;
+
+  --border: 48 14% 18%;
+}
+
+/* Işık tema */
+.light {
+  --background: 48 33% 98%;
+  --foreground: 48 20% 8%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 48 20% 8%;
+
+  --primary: 155 60% 42%;
+  --primary-foreground: 0 0% 100%;
+
+  --muted: 48 20% 94%;
+  --muted-foreground: 48 15% 35%;
+
+  --border: 48 18% 88%;
+}
+
+html, body {
+  @apply bg-background text-foreground min-h-screen;
+}
+
+.container {
+  @apply mx-auto max-w-6xl px-4;
+}
