@@ -6,15 +6,12 @@ type Props = {
   logo?: string | null;
   name: string;
   symbol: string;
-  votes?: number; // opsiyonel: /coins sayfasında göstermeyebiliriz
+  votes?: number; // opsiyonel
 };
 
 function normalizeLogo(url?: string | null) {
   if (!url) return null;
-  // ipfs://... -> https://ipfs.io/ipfs/...
-  if (url.startsWith('ipfs://')) {
-    return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
-  }
+  if (url.startsWith('ipfs://')) return url.replace('ipfs://', 'https://ipfs.io/ipfs/');
   return url;
 }
 
