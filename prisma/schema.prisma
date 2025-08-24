@@ -39,7 +39,7 @@ model Coin {
   id        String   @id @default(uuid())
   chainKind ChainKind
   chainId   Int?
-  address   String?
+  address   String
   slug      String   @unique
   symbol    String
   name      String
@@ -53,7 +53,11 @@ model Coin {
 
   @@index([symbol])
   @@index([name])
-  @@unique([chainId, address])
+  @@index([chainKind])
+  @@index([address])
+  // chainId null olabileceği için unique constraint'i kaldırıyoruz
+  // bunun yerine chainKind + address kombinasyonunu unique yapıyoruz
+  @@unique([chainKind, address])
 }
 
 model DailyVote {
