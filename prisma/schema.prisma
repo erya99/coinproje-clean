@@ -9,6 +9,7 @@ datasource db {
 }
 
 enum ChainKind {
+  EVM
   ETHEREUM
   BSC
   POLYGON
