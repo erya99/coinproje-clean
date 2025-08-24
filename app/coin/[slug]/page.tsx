@@ -75,7 +75,7 @@ export default async function CoinDetailPage({ params }: PageProps) {
 
       {/* Oy butonu */}
       <VoteButton coinId={coin.id} />
-      <AdUnit adSlot="7224318004" className="mt-6" />
+      <AdUnit slot="7224318004" className="mt-6" collapseIfEmpty />
 
       <p className="mt-8 text-xs text-muted-foreground">
       </p>

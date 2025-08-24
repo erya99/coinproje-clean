@@ -1,101 +1,90 @@
-// app/components/AdUnit.tsx
-"use client";
+'use client';
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from 'react';
 
 declare global {
   interface Window {
-    adsbygoogle: any[];
+    adsbygoogle?: any[];
   }
 }
 
 type AdUnitProps = {
-  adSlot: string;                        // ör: "7224318004"
+  /** AdSense slot id (ör. "7224318004") */
+  slot: string;
+  /** Tailwind / custom class */
   className?: string;
-  format?: "auto" | "rectangle" | "vertical" | "horizontal";
-  fullWidthResponsive?: boolean;
-  /** Reklamın yüklenmesi için bekleme süresi (ms). Süre dolarsa gizle. */
-  timeoutMs?: number;
-  /** Test sırasında beyaz blok görmemek için küçük koyu placeholder göstermek istersen */
-  showPlaceholder?: boolean;
+  /** Reklam gelmezse otomatik gizle */
+  collapseIfEmpty?: boolean;
+  /** Sadece testte kullan: test reklamı gösterir */
+  test?: boolean;
 };
 
 export default function AdUnit({
-  adSlot,
+  slot,
   className,
-  format = "auto",
-  fullWidthResponsive = true,
-  timeoutMs = 2500,
-  showPlaceholder = false,
+  collapseIfEmpty = true,
+  test = false,
 }: AdUnitProps) {
-  const ref = useRef<HTMLModElement | null>(null);
-  const [visible, setVisible] = useState(false);     // Reklamı gerçekten göster
-  const [giveUp, setGiveUp] = useState(false);       // Zaman aşımında tamamen gizle
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(!collapseIfEmpty);
 
   useEffect(() => {
     if (!ref.current) return;
 
-    // 1) Reklamı talep et
+    // AdSense'i tetikle
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
-      // adblock vb. durumlarda push hata atabilir
+      /* ignore */
     }
 
-    // 2) iframe geldi mi diye izle
-    const el = ref.current;
-    const check = () => {
-      const hasIframe = !!el.querySelector("iframe");
-      if (hasIframe) {
-        setVisible(true);
-        return true;
-      }
-      return false;
-    };
+    if (!collapseIfEmpty) return;
 
+    const el = ref.current;
+
+    // iframe oluştuğunda görünür yap
     const obs = new MutationObserver(() => {
-      if (check()) obs.disconnect();
+      const iframe = el.querySelector('iframe');
+      if (iframe && iframe.clientHeight > 0) {
+        setVisible(true);
+        obs.disconnect();
+      }
     });
     obs.observe(el, { childList: true, subtree: true });
 
-    // 3) Süre dolarsa gizle
+    // 3.5 sn içinde iframe gelmezse gizle
     const t = setTimeout(() => {
-      if (!check()) {
-        setGiveUp(true);
-        obs.disconnect();
+      const iframe = el.querySelector('iframe');
+      if (!iframe || iframe.clientHeight === 0) {
+        setVisible(false);
+      } else {
+        setVisible(true);
       }
-    }, timeoutMs);
+    }, 3500);
 
     return () => {
       clearTimeout(t);
       obs.disconnect();
     };
-  }, [adSlot, timeoutMs]);
+  }, [slot, collapseIfEmpty]);
 
-  // Zaman aşımında hiç yer kaplamasın
-  if (giveUp) return null;
+  if (!visible && collapseIfEmpty) return null;
 
   return (
-    <div className={className}>
-      {/* İsteyenler için koyu küçük placeholder (reklam gelene kadar) */}
-      {!visible && showPlaceholder && (
-        <div className="h-32 rounded-xl border border-border bg-card/40 animate-pulse" />
-      )}
-
-      {/* Reklam container — iframe geldiyse görünür, gelene kadar hidden */}
-      <ins
-        ref={ref as any}
-        className={`adsbygoogle ${visible ? "" : "hidden"}`}
-        style={{
-          display: "block",
-          textAlign: "center",
-          background: "transparent",
-        }}
-        data-ad-client="ca-pub-8264540196990511"
-        data-ad-slot={adSlot}
-        data-ad-format={format}
-        data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
-      />
-    </div>
+    <ins
+      ref={ref as any}
+      // Koyu temaya uyumlu placeholder
+      className={`adsbygoogle block rounded-xl overflow-hidden bg-muted ${className ?? ''}`}
+      style={{
+        display: 'block',
+        minHeight: 250, // responsive için makul bir minimum
+      }}
+      data-ad-client="ca-pub-8264540196990511"
+      data-ad-slot={slot}
+      data-ad-format="auto"
+      data-full-width-responsive="true"
+      // Test modunu sadece denemede aç
+      {...(test ? { 'data-adtest': 'on' } : {})}
+    />
   );
 }

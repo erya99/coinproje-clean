@@ -43,7 +43,7 @@ export default async function CoinsPage({ searchParams }: PageProps) {
         <input
           name="q"
           defaultValue={q}
-          placeholder="Ara: name, symbol, address"
+          placeholder="Search: name, symbol, address"
           className="w-full rounded-xl border border-border bg-card text-foreground
                      placeholder:text-muted-foreground px-4 py-3 outline-none
                      focus:ring-2 focus:ring-primary/40"
