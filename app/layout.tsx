@@ -1,14 +1,13 @@
 import './globals.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
-import ThemeToggle from '@/components/theme-toggle';
-import { ThemeProvider } from '@/components/theme-provider';
 import Link from 'next/link';
+import { ThemeProvider } from '@/components/theme-provider';
+import ThemeToggle from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
   title: 'ShillVote — Günün En Çok Oylanan Coinleri',
-  description:
-    'Kullanıcı oylamasıyla sıralanan coin listesi. Finansal tavsiye değildir.',
+  description: 'Kullanıcı oylamasıyla sıralanan coin listesi. Finansal tavsiye değildir.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -18,10 +17,10 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <ThemeProvider>
           <header className="border-b border-border/70 backdrop-blur supports-[backdrop-filter]:bg-background/70">
             <div className="container flex h-14 items-center justify-between gap-4">
-              <Link href="/" className="font-semibold tracking-tight">
+              {/* ✅ prefetch kapalı: her tıklamada taze veri */}
+              <Link href="/" prefetch={false} className="font-semibold tracking-tight">
                 <span className="text-primary">Shill</span>Vote
               </Link>
-
               <div className="flex items-center gap-2">
                 <Link
                   href="/coins"

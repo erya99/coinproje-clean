@@ -1,55 +1,65 @@
-// anında güncelleme için cache kapalı
+import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
+
 export const dynamic = 'force-dynamic';
 
-import { prisma } from '../lib/prisma';
-import type { Prisma } from '@prisma/client';
-import CoinCard from '../components/CoinCard';
+type SearchProps = {
+  searchParams?: { q?: string };
+};
 
-function todayYmdTR() {
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = String(now.getMonth() + 1).padStart(2, '0');
-  const d = String(now.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
+export default async function CoinsPage({ searchParams }: SearchProps) {
+  const q = (searchParams?.q ?? '').trim();
 
-type VoteWithCoin = Prisma.DailyVoteGetPayload<{ include: { coin: true } }>;
+  const where: Prisma.CoinWhereInput = q
+    ? {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { symbol: { contains: q, mode: 'insensitive' } },
+          { address: { contains: q, mode: 'insensitive' } },
+        ],
+      }
+    : {};
 
-export default async function Home() {
-  const ymd = todayYmdTR();
-
-  const items: VoteWithCoin[] = await prisma.dailyVote.findMany({
-    where: { dateYmd: ymd },
-    include: { coin: true },
-    orderBy: { votes: 'desc' },
-    take: 100,
+  const items = await prisma.coin.findMany({
+    where,
+    orderBy: [{ name: 'asc' }],
+    take: 500,
   });
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-2">Bugünün En Çok Oylanan Coinleri</h1>
-      <p className="text-sm text-muted-foreground mb-6">
-        Finansal tavsiye değildir. Oylar kullanıcı görüşüdür.
-      </p>
+      <h1 className="text-2xl font-bold mb-2">Tüm Coinler</h1>
+      <p className="text-sm text-muted-foreground mb-4">Bugünün oyları</p>
 
-      {items.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
-          Henüz oy yok. <a className="underline" href="/coins">Coin listesine</a> gidip oy verebilirsin.
-        </div>
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((it) => (
-            <CoinCard
-              key={it.id}
-              href={`/coin/${it.coin.slug}`}
-              logo={it.coin.logoURI}
-              name={it.coin.name}
-              symbol={it.coin.symbol}
-              votes={it.votes}
-            />
-          ))}
-        </div>
-      )}
+      <form className="mb-4" action="/coins">
+        <input
+          name="q"
+          defaultValue={q}
+          placeholder="Ara: name, symbol, address"
+          className="w-full rounded-xl border border-border bg-card text-foreground
+                     placeholder:text-muted-foreground px-4 py-3 outline-none
+                     focus:ring-2 focus:ring-primary/40"
+        />
+      </form>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        {items.map((c) => (
+          <Link
+            key={c.id}
+            href={`/coin/${c.slug}`}
+            className="group rounded-xl border border-border bg-card p-4 hover:bg-muted transition"
+          >
+            <div className="flex items-center gap-3">
+              <div className="size-10 rounded-full border border-border bg-muted" />
+              <div className="min-w-0">
+                <div className="truncate font-medium">{c.name}</div>
+                <div className="text-xs text-muted-foreground">{c.symbol}</div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </>
   );
 }

@@ -1,12 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-type Props = {
-  coinId: string;
-};
-
-export default function VoteButton({ coinId }: Props) {
+export default function VoteButton({ coinId }: { coinId: string }) {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [ok, setOk] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -21,15 +19,14 @@ export default function VoteButton({ coinId }: Props) {
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ coinId }),
       });
-
       const data = await res.json();
-      if (!res.ok || !data?.ok) {
-        throw new Error(data?.error || 'Oy verilemedi');
-      }
+      if (!res.ok || !data?.ok) throw new Error(data?.error || 'Oy verilemedi');
 
       setOk(true);
-      // sayfayı tazelemek istersen:
-      // window.location.reload();
+      // ✅ bulunduğun sayfayı ve cache’i tazele
+      router.refresh();
+      // istersen direkt ana sayfaya dön:
+      // router.push('/');
     } catch (e: any) {
       setErr(e.message || 'Hata');
     } finally {
@@ -47,12 +44,7 @@ export default function VoteButton({ coinId }: Props) {
       >
         {loading ? 'Gönderiliyor…' : ok ? 'Oy kaydedildi ✓' : 'Oy ver'}
       </button>
-
-      {err && (
-        <p className="mt-2 text-xs text-red-400" role="alert">
-          {err}
-        </p>
-      )}
+      {err && <p className="mt-2 text-xs text-red-400" role="alert">{err}</p>}
     </div>
   );
 }
