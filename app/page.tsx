@@ -28,18 +28,18 @@ export default async function Home() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-2">Bugünün En Çok Oylanan Coinleri</h1>
+      <h1 className="text-2xl font-bold mb-2">Today’s Most Voted Coins</h1>
       <p className="text-sm text-muted-foreground mb-6">
-        Finansal tavsiye değildir. Oylar kullanıcı görüşüdür.
+        Not financial advice. Votes reflect user opinions.
       </p>
 
       {items.length === 0 ? (
         <div className="rounded-xl border bg-card p-6 text-sm text-muted-foreground">
-          Henüz oy yok.{' '}
+          No votes yet.{' '}
           <Link className="underline" href="/coins">
-            Coin listesine
+            You can go to the coin list
           </Link>{' '}
-          gidip oy verebilirsin.
+          and cast your vote.
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

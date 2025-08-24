@@ -1,30 +1,53 @@
-// components/AdUnit.tsx
-'use client';
+"use client";
+import { useEffect } from "react";
 
-import { useEffect } from 'react';
+declare global {
+  interface Window {
+    adsbygoogle: any[];
+  }
+}
 
-type Props = {
-  slot: string;
+type AdUnitProps = {
+  /** AdSense ad slot id (ör: "7224318004") */
+  adSlot: string;
+  /** Tailwind vs. ek sınıflar */
   className?: string;
+  /** AdSense formatı; çoğu durumda 'auto' bırak */
+  format?: "auto" | "rectangle" | "vertical" | "horizontal";
+  /** Tam genişlikte responsive olsun mu */
+  fullWidthResponsive?: boolean;
+  /** İstersen style ile override edebilirsin */
+  style?: React.CSSProperties;
 };
 
-export default function AdUnit({ slot, className }: Props) {
+export default function AdUnit({
+  adSlot,
+  className,
+  format = "auto",
+  fullWidthResponsive = true,
+  style,
+}: AdUnitProps) {
   useEffect(() => {
-    // adsbygoogle global'ini tetikle
     try {
-      // @ts-ignore
       (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch {}
-  }, []);
+    } catch {
+      /* ignore */
+    }
+  }, [adSlot]);
 
   return (
     <ins
-      className={`adsbygoogle block ${className || ''}`}
-      style={{ display: 'block' }}
-      data-ad-client="ca-pub-82645401969908511"  // kendi client id'in
-      data-ad-slot={slot}
-      data-ad-format="auto"
-      data-full-width-responsive="true"
+      className={`adsbygoogle ${className ?? ""}`}
+      style={{
+        display: "block",
+        textAlign: "center",
+        background: "transparent", // boşken beyaz kutu olmasın
+        ...style,
+      }}
+      data-ad-client="ca-pub-8264540196990511"
+      data-ad-slot={adSlot}
+      data-ad-format={format}
+      data-full-width-responsive={fullWidthResponsive ? "true" : "false"}
     />
   );
 }

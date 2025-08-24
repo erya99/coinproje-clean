@@ -42,7 +42,7 @@ export default function VoteButton({ coinId }: { coinId: string }) {
         className="w-full rounded-xl border border-border bg-card text-foreground
                    hover:bg-muted transition px-4 py-3 font-medium disabled:opacity-60"
       >
-        {loading ? 'Gönderiliyor…' : ok ? 'Oy kaydedildi ✓' : 'Oy ver'}
+        {loading ? 'Loading...' : ok ? 'Vote recorded ✓' : 'Vote'}
       </button>
       {err && <p className="mt-2 text-xs text-red-400" role="alert">{err}</p>}
     </div>

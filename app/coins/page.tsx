@@ -35,8 +35,8 @@ export default async function CoinsPage({ searchParams }: PageProps) {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-2">Tüm Coinler</h1>
-      <p className="text-sm text-muted-foreground mb-4">Bugünün oyları</p>
+      <h1 className="text-2xl font-bold mb-2">All Coins</h1>
+      <p className="text-sm text-muted-foreground mb-4">Today’s votes</p>
 
       {/* Arama kutusu – karanlık temada beyaz görünmesin diye bg-card/border kullanıyoruz */}
       <form className="mb-4" action="/coins">

@@ -8,9 +8,9 @@ import { ThemeProvider } from '@/components/theme-provider';
 import ThemeToggle from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
-  title: 'ShillVote — Günün En Çok Oylanan Coinleri',
+  title: 'ShillVote — Today’s Most Voted Coins',
   description:
-    'Kullanıcı oylamasıyla sıralanan coin listesi. Finansal tavsiye değildir.',
+    'Coin ranking based on user votes. Not financial advice.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                   href="/coins"
                   className="rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted transition"
                 >
-                  Coinler
+                  Coins
                 </Link>
                 <ThemeToggle />
               </div>
@@ -49,7 +49,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main className="container py-6">{children}</main>
 
           <footer className="container py-10 text-xs text-muted-foreground">
-            © {new Date().getFullYear()} ShillVote — finansal tavsiye değildir.
+            © {new Date().getFullYear()} ShillVote — not financial advice.
           </footer>
         </ThemeProvider>
       </body>
