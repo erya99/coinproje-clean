@@ -386,13 +386,44 @@ export async function reindexTokens(): Promise<number> {
     // Slug oluştur
     const slug = slugify(`${r.symbol}-${r.name}-${r.chain}`);
 
+    // chainId null ise varsayılan değer ata
+    const normalizedChainId = r.chainId ?? (function() {
+      // chainId null ise chain'e göre varsayılan değer ata
+      const chainStr = r.chain as string;
+      switch (chainStr) {
+        case 'ETHEREUM': return 1;
+        case 'BSC': return 56;
+        case 'POLYGON': return 137;
+        case 'ARBITRUM': return 42161;
+        case 'OPTIMISM': return 10;
+        case 'BASE': return 8453;
+        case 'AVALANCHE': return 43114;
+        case 'FANTOM': return 250;
+        case 'GNOSIS': return 100;
+        case 'CRONOS': return 25;
+        // Non-EVM chains için negatif değerler
+        case 'SOLANA': return -1;
+        case 'TON': return -2;
+        case 'TRON': return -3;
+        case 'NEAR': return -4;
+        case 'SUI': return -5;
+        case 'APTOS': return -6;
+        case 'COSMOS': return -7;
+        case 'BITCOIN': return -8;
+        case 'DOGE': return -9;
+        case 'LITECOIN': return -10;
+        case 'STARKNET': return -11;
+        default: return -999; // OTHER için
+      }
+    })();
+
     try {
       await prisma.coin.upsert({
         where: { 
           chainId_address: { 
-            chainId: r.chainId ?? null, 
+            chainId: normalizedChainId,
             address: r.address 
-          } as any
+          }
         },
         update: {
           name: r.name.trim(),
@@ -403,7 +434,7 @@ export async function reindexTokens(): Promise<number> {
         },
         create: {
           chainKind: r.chain,
-          chainId: r.chainId ?? null,
+          chainId: normalizedChainId,
           address: r.address,
           name: r.name.trim(),
           symbol: r.symbol.trim(),
