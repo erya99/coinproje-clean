@@ -1,5 +1,5 @@
-// app/page.tsx
-export const dynamic = 'force-dynamic'; // cache kapat: her istekte SSR
+// anında güncelleme için cache kapalı
+export const dynamic = 'force-dynamic';
 
 import { prisma } from '../lib/prisma';
 import type { Prisma } from '@prisma/client';
@@ -17,6 +17,7 @@ type VoteWithCoin = Prisma.DailyVoteGetPayload<{ include: { coin: true } }>;
 
 export default async function Home() {
   const ymd = todayYmdTR();
+
   const items: VoteWithCoin[] = await prisma.dailyVote.findMany({
     where: { dateYmd: ymd },
     include: { coin: true },
@@ -27,12 +28,12 @@ export default async function Home() {
   return (
     <>
       <h1 className="text-2xl font-bold mb-2">Bugünün En Çok Oylanan Coinleri</h1>
-      <p className="text-sm text-stone-600 mb-6">
+      <p className="text-sm text-muted-foreground mb-6">
         Finansal tavsiye değildir. Oylar kullanıcı görüşüdür.
       </p>
 
       {items.length === 0 ? (
-        <div className="rounded-xl border bg-white p-6 text-sm text-stone-600">
+        <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
           Henüz oy yok. <a className="underline" href="/coins">Coin listesine</a> gidip oy verebilirsin.
         </div>
       ) : (
