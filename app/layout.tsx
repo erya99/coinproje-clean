@@ -1,18 +1,31 @@
+// app/layout.tsx
 import './globals.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import Script from 'next/script';            // ⬅️ AdSense için eklendi
 import { ThemeProvider } from '@/components/theme-provider';
 import ThemeToggle from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
   title: 'ShillVote — Günün En Çok Oylanan Coinleri',
-  description: 'Kullanıcı oylamasıyla sıralanan coin listesi. Finansal tavsiye değildir.',
+  description:
+    'Kullanıcı oylamasıyla sıralanan coin listesi. Finansal tavsiye değildir.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="tr" suppressHydrationWarning>
+      <head>
+        {/* Google AdSense – domain genelinde bir kez yüklenir */}
+        <Script
+          id="adsense-script"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8264540196990511"
+          strategy="afterInteractive"
+          crossOrigin="anonymous"
+        />
+      </head>
+
       <body>
         <ThemeProvider>
           <header className="border-b border-border/70 backdrop-blur supports-[backdrop-filter]:bg-background/70">

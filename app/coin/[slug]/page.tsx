@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import VoteButton from './vote-button';
+import AdUnit from '@/components/AdUnit';
 
 export const dynamic = 'force-dynamic';
 
@@ -74,6 +75,7 @@ export default async function CoinDetailPage({ params }: PageProps) {
 
       {/* Oy butonu */}
       <VoteButton coinId={coin.id} />
+      <AdUnit slot="7224318004" className="mt-6" />
 
       <p className="mt-8 text-xs text-muted-foreground">
       </p>
