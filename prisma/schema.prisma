@@ -9,9 +9,8 @@ datasource db {
 }
 
 enum ChainKind {
-  # EVM uyumlu zincirler
   ETHEREUM
-  BSC          # Binance Smart Chain
+  BSC
   POLYGON
   ARBITRUM
   OPTIMISM
@@ -20,8 +19,6 @@ enum ChainKind {
   FANTOM
   GNOSIS
   CRONOS
-
-  # Non-EVM ama büyük ekosistemler
   SOLANA
   TRON
   TON
@@ -30,15 +27,11 @@ enum ChainKind {
   SUI
   APTOS
   STARKNET
-
-  # Bitcoin tabanlı
   BITCOIN
   DOGE
   LITECOIN
-
-  # Stablecoin / wrapped mantığı için generic
-  NATIVE       # zincirin kendi coini (ETH, BNB, MATIC vs.)
-  OTHER        # listede olmayan zincirler için fallback
+  NATIVE
+  OTHER
 }
 
 model Coin {
