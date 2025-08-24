@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@sindresorhus/slugify": "^2.2.1",
     "@upstash/ratelimit": "^1.0.0",
     "@upstash/redis": "^1.28.4",
     "class-variance-authority": "^0.7.0",

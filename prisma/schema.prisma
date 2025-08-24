@@ -9,9 +9,36 @@ datasource db {
 }
 
 enum ChainKind {
-  EVM
+  # EVM uyumlu zincirler
+  ETHEREUM
+  BSC          # Binance Smart Chain
+  POLYGON
+  ARBITRUM
+  OPTIMISM
+  BASE
+  AVALANCHE
+  FANTOM
+  GNOSIS
+  CRONOS
+
+  # Non-EVM ama büyük ekosistemler
   SOLANA
-  NATIVE
+  TRON
+  TON
+  NEAR
+  COSMOS
+  SUI
+  APTOS
+  STARKNET
+
+  # Bitcoin tabanlı
+  BITCOIN
+  DOGE
+  LITECOIN
+
+  # Stablecoin / wrapped mantığı için generic
+  NATIVE       # zincirin kendi coini (ETH, BNB, MATIC vs.)
+  OTHER        # listede olmayan zincirler için fallback
 }
 
 model Coin {
