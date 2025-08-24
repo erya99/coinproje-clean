@@ -13,7 +13,7 @@ export default function ThemeToggle() {
       aria-label="Tema değiştir"
     >
       {isDark ? <Sun size={16}/> : <Moon size={16}/>}
-      {isDark ? 'Açık' : 'Koyu'}
+      {isDark ? 'Light' : 'Dark'}
     </button>
   );
 }

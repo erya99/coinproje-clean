@@ -20,7 +20,7 @@ export default function VoteButton({ coinId }: { coinId: string }) {
         body: JSON.stringify({ coinId }),
       });
       const data = await res.json();
-      if (!res.ok || !data?.ok) throw new Error(data?.error || 'Oy verilemedi');
+      if (!res.ok || !data?.ok) throw new Error(data?.error || 'Voting failed');
 
       setOk(true);
       // ✅ bulunduğun sayfayı ve cache’i tazele

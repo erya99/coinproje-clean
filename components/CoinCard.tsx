@@ -41,7 +41,7 @@ export default function CoinCard({ href, logo, name, symbol, votes }: Props) {
 
         {typeof votes === 'number' && (
           <div className="ml-auto rounded-lg bg-primary/15 px-2 py-1 text-xs text-primary">
-            {votes.toLocaleString('tr-TR')} oy
+            {votes.toLocaleString('tr-TR')} votes
           </div>
         )}
       </div>
