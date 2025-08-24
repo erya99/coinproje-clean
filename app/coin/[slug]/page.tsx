@@ -46,7 +46,7 @@ export default async function CoinDetailPage({ params }: PageProps) {
     <>
       <div className="mb-6">
         <Link href="/coins" className="text-sm text-muted-foreground hover:underline">
-          ← Tüm coinler
+          ← All coins
         </Link>
       </div>
 
@@ -68,7 +68,7 @@ export default async function CoinDetailPage({ params }: PageProps) {
           </div>
 
           <div className="ml-auto rounded-lg bg-primary/15 px-2 py-1 text-xs text-primary">
-            Bugün: {votesToday.toLocaleString('tr-TR')} oy
+            Today: {votesToday.toLocaleString('tr-TR')} votes
           </div>
         </div>
       </div>
