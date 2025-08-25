@@ -1,9 +1,8 @@
+export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getAdminTokenFromCookies, verifyAdminToken } from '@/lib/auth';
 import slugify from '@sindresorhus/slugify';
-
-export const runtime = 'nodejs';
 
 export async function POST(_: Request, { params }: { params: { id: string } }) {
   const token = getAdminTokenFromCookies();

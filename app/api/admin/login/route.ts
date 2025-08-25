@@ -1,7 +1,7 @@
+export const runtime = 'nodejs';
 import { NextResponse } from 'next/server';
 import { createAdminToken, setAdminCookie } from '@/lib/auth';
 
-export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
   const { username, password } = await req.json().catch(() => ({}));
