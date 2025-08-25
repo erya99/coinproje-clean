@@ -3,8 +3,11 @@ export const runtime = 'nodejs';
 import { NextRequest, NextResponse } from 'next/server';
 import { makeAdminToken } from '@/lib/auth';
 
+//    ▼▼▼ GÜNCELLENDİ ▼▼▼
 function sanitizeNext(next: string | null): string {
-  if (!next || !next.startsWith('/admin')) return '/admin/coins';
+  if (!next) return '/admin/coins';
+  if (next === '/admin' || next === '/admin/') return '/admin/coins';
+  if (!next.startsWith('/admin')) return '/admin/coins';
   if (next.startsWith('/admin/api')) return '/admin/coins';
   return next;
 }
@@ -28,7 +31,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(url, { status: 303 });
   }
 
-  // başarılı -> cookie yaz ve admin/coins’e gönder
   const token = makeAdminToken();
   const res = NextResponse.redirect(new URL(next, req.nextUrl), { status: 303 });
   res.cookies.set('admin_token', token, {
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7, // 7 gün
+    maxAge: 60 * 60 * 24 * 7,
   });
   return res;
 }
