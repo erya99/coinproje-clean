@@ -1,12 +1,13 @@
 export const runtime = 'nodejs';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyAdminToken } from '@/lib/auth';
+import { NextResponse } from 'next/server';
 import slugify from '@sindresorhus/slugify';
+import { prisma } from '@/lib/prisma';
+import { getAdminTokenFromRequest, verifyAdminToken } from '@/lib/auth';
 
-export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const token = req.cookies.get('admin_token')?.value || null;
+export async function POST(req: Request, { params }: { params: { id: string } }) {
+  // ---- Auth ----
+  const token = getAdminTokenFromRequest(req);
   if (!verifyAdminToken(token)) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
@@ -16,10 +17,12 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ ok: false, error: 'Not found' }, { status: 404 });
   }
 
-  // benzersiz slug üret
+  // slug benzersizliği
   const base = `${reqItem.symbol}-${reqItem.name}-${reqItem.chainKind}`;
   let slug = slugify(base, { lowercase: true });
-  for (let i = 1; await prisma.coin.findUnique({ where: { slug } }); i++) {
+  for (let i = 1; i < 50; i++) {
+    const exists = await prisma.coin.findUnique({ where: { slug } });
+    if (!exists) break;
     slug = slugify(`${base}-${i}`, { lowercase: true });
   }
 
@@ -27,10 +30,10 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     await tx.coin.create({
       data: {
         name: reqItem.name,
-        symbol: reqItem.symbol,
-        chainKind: reqItem.chainKind, // Prisma enum ile uyumlu
-        address: reqItem.address,
-        logoURI: reqItem.logoURI,
+        symbol: reqItem.symbol.toUpperCase(),
+        chainKind: reqItem.chainKind,
+        address: reqItem.address || null,
+        logoURI: reqItem.logoURI || null,
         slug,
         sources: ['request'],
       },
