@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import AdminRequestsActions from './_actions';
+import AdminRequestsActions from '../../api/admin/request/_actions';
 
 export const dynamic = 'force-dynamic';
 
