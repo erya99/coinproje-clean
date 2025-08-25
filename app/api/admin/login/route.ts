@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export const runtime = 'nodejs'; // api route Node.js'ta çalışsın
+export const runtime = 'nodejs'; // bu route Node.js ortamında çalışır (Edge değil)
 
 export async function POST(req: NextRequest) {
   const form = await req.formData();
@@ -14,20 +14,20 @@ export async function POST(req: NextRequest) {
   const next = url.searchParams.get('next') ?? '/admin/coins';
 
   if (username !== U || password !== P) {
-    const res = NextResponse.redirect(new URL(`/admin/login?error=Wrong+credentials&next=${encodeURIComponent(next)}`, req.url));
-    return res;
+    return NextResponse.redirect(
+      new URL(`/admin/login?error=Wrong+credentials&next=${encodeURIComponent(next)}`, req.url)
+    );
   }
 
-  // cookie ömrü: 1 gün
-  const maxAge = 60 * 60 * 24;
   const isProd = process.env.NODE_ENV === 'production';
+  const maxAge = 60 * 60 * 24; // 1 gün
 
   const res = NextResponse.redirect(new URL(next, req.url));
   res.cookies.set('admin', '1', {
     path: '/',
     httpOnly: true,
     sameSite: 'lax',
-    secure: isProd, // https'te Secure
+    secure: isProd,
     maxAge,
   });
   res.cookies.set('admin_name', encodeURIComponent(username), {
@@ -37,6 +37,5 @@ export async function POST(req: NextRequest) {
     secure: isProd,
     maxAge,
   });
-
   return res;
 }

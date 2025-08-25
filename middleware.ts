@@ -3,19 +3,17 @@ import { NextRequest, NextResponse } from 'next/server';
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
+  // API'yi asla yakalama
+  if (pathname.startsWith('/api')) return NextResponse.next();
+
   // Sadece /admin altını koru
-  if (!pathname.startsWith('/admin')) {
-    return NextResponse.next();
-  }
+  if (!pathname.startsWith('/admin')) return NextResponse.next();
 
-  // Login ve login API serbest
-  if (pathname.startsWith('/admin/login') || pathname.startsWith('/admin/api/login')) {
-    return NextResponse.next();
-  }
+  // Login sayfası serbest
+  if (pathname.startsWith('/admin/login')) return NextResponse.next();
 
-  // Cookie kontrolü (Edge uyumlu, imza yok)
-  const isAdmin = req.cookies.get('admin')?.value === '1';
-  if (isAdmin) return NextResponse.next();
+  // Cookie kontrolü
+  if (req.cookies.get('admin')?.value === '1') return NextResponse.next();
 
   const url = req.nextUrl.clone();
   url.pathname = '/admin/login';
@@ -24,5 +22,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/api/:path*'], // api için early-return var
 };

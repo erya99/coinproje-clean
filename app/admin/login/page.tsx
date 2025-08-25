@@ -18,8 +18,12 @@ function LoginFormInner() {
         </div>
       )}
 
-      {/* next paramını koru */}
-      <form method="post" action={`/admin/api/login?next=${encodeURIComponent(next)}`} className="space-y-3">
+      {/* ÖNEMLİ: action artık /api/admin/login */}
+      <form
+        method="post"
+        action={`/api/admin/login?next=${encodeURIComponent(next)}`}
+        className="space-y-3"
+      >
         <input
           type="text"
           name="username"
