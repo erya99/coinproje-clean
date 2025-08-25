@@ -1,40 +1,26 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import { verifyAdminToken } from '@/lib/auth';
 
-// Admin bölgesi kökleri
-const ADMIN_GUARDS = ['/admin'];
+// SADECE /admin sayfaları; /api hariç
+export const config = { matcher: ['/admin/:path*'] };
 
-/**
- * Middleware sadece admin_token çerezi VAR MI diye bakar.
- * Token'ın kriptografik doğrulaması sayfa ve API route'larında yapılır
- * (oralar Node.js runtime, 'crypto' kullanılabilir).
- */
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // /admin/login ve /admin/api/* serbest
-  if (pathname.startsWith('/admin/login') || pathname.startsWith('/admin/api')) {
+  // /admin/api/... var ise (yanlışlıkla) hiç dokunma
+  if (pathname.startsWith('/admin/api')) return NextResponse.next();
+
+  // login sayfasını bırak
+  if (pathname === '/admin/login' || pathname.startsWith('/admin/login/')) {
     return NextResponse.next();
   }
 
-  // Admin guard alanı mı?
-  const needsAdmin = ADMIN_GUARDS.some(
-    (base) => pathname === base || pathname.startsWith(base + '/'),
-  );
-  if (!needsAdmin) return NextResponse.next();
+  const token = req.cookies.get('admin_token')?.value ?? null;
+  if (verifyAdminToken(token)) return NextResponse.next();
 
-  // Sadece çerez var mı diye bak
-  const hasToken = !!req.cookies.get('admin_token')?.value;
-  if (hasToken) return NextResponse.next();
-
-  // login'e yönlendir
   const url = req.nextUrl.clone();
   url.pathname = '/admin/login';
   url.searchParams.set('next', pathname);
   return NextResponse.redirect(url);
 }
-
-// Sadece admin yollarını dinle
-export const config = {
-  matcher: ['/admin/:path*'],
-};

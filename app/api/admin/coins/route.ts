@@ -1,68 +1,49 @@
 export const runtime = 'nodejs';
-
 import { NextResponse } from 'next/server';
-import path from 'path';
-import fs from 'fs/promises';
-import slugify from '@sindresorhus/slugify';
 import { prisma } from '@/lib/prisma';
-import { ChainKind } from '@prisma/client';
 import { verifyAdminToken } from '@/lib/auth';
+import slugify from '@sindresorhus/slugify';
+import { promises as fs } from 'fs';
+import path from 'path';
 
-/**
- * Admin: yeni coin ekleme (form-data)
- * Alanlar:
- *  - name (string, required)
- *  - symbol (string, required)
- *  - chainKind (ChainKind, required)
- *  - address (string, optional)
- *  - logo (File, optional)
- */
 export async function POST(req: Request) {
-  // ---- Auth (cookie'den token; TS için ?? null) ----
-  const token = (req as any).cookies?.get?.('admin_token')?.value
-    ?? (await getCookieFromHeader(req.headers, 'admin_token'));
-  if (!verifyAdminToken(token ?? null)) {
+  // cookie'den token al
+  const cookie = (req.headers.get('cookie') ?? '')
+    .split(';').map(s => s.trim()).find(s => s.startsWith('admin_token='));
+  const token = cookie ? decodeURIComponent(cookie.split('=')[1]) : null;
+
+  // TS uyarısı olmaması için null geçiyoruz
+  if (!verifyAdminToken(token)) {
     return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
   const form = await req.formData();
+  const name = String(form.get('name') || '').trim();
+  const symbol = String(form.get('symbol') || '').trim().toUpperCase();
+  const chainKind = String(form.get('chainKind') || '').trim();
+  const address = String(form.get('address') || '').trim() || null;
+  const file = form.get('logo') as File | null;
 
-  const name = String(form.get('name') ?? '').trim();
-  const symbol = String(form.get('symbol') ?? '').trim().toUpperCase();
-  const chainKindRaw = String(form.get('chainKind') ?? '').trim();
-  const address = String(form.get('address') ?? '').trim() || null;
-
-  if (!name || !symbol || !chainKindRaw) {
+  if (!name || !symbol || !chainKind) {
     return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
   }
 
-  // ChainKind doğrulama
-  const chainKind = chainKindRaw as ChainKind;
-  const allowed = Object.keys(ChainKind) as (keyof typeof ChainKind)[];
-  if (!allowed.includes(chainKind as any)) {
-    return NextResponse.json({ ok: false, error: 'Invalid chainKind' }, { status: 400 });
-  }
-
-  // Logo yükleme (opsiyonel)
+  // logo kaydet (opsiyonel)
   let logoURI: string | null = null;
-  const logo = form.get('logo');
-  if (logo && typeof logo === 'object' && 'arrayBuffer' in logo) {
-    const file = logo as File;
-    if (file.size > 0) {
-      const buf = Buffer.from(await file.arrayBuffer());
-      const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-      await fs.mkdir(uploadDir, { recursive: true });
-
-      const safeName =
-        `${Date.now()}-${(file.name || 'logo.png').replace(/[^\w.\-]+/g, '_')}`;
-      const filePath = path.join(uploadDir, safeName);
-      await fs.writeFile(filePath, buf);
-
-      logoURI = `/uploads/${safeName}`;
-    }
+  if (file && file.size > 0) {
+    const arrayBuf = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuf);
+    const ext = (file.type.includes('png') ? 'png' :
+                file.type.includes('jpeg') ? 'jpg' :
+                path.extname(file.name).replace('.', '') || 'png');
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    await fs.mkdir(uploadDir, { recursive: true });
+    await fs.writeFile(path.join(uploadDir, filename), buffer);
+    logoURI = `/uploads/${filename}`;
   }
 
-  // Slug benzersizliği
+  // benzersiz slug
   const base = `${symbol}-${name}-${chainKind}`;
   let slug = slugify(base, { lowercase: true });
   for (let i = 1; i < 50; i++) {
@@ -71,33 +52,12 @@ export async function POST(req: Request) {
     slug = slugify(`${base}-${i}`, { lowercase: true });
   }
 
-  // Kayıt
-  const created = await prisma.coin.create({
+  await prisma.coin.create({
     data: {
-      name,
-      symbol,
-      chainKind,
-      address,
-      logoURI,
-      slug,
-      sources: ['admin'],
+      name, symbol, chainKind: chainKind as any, address, slug,
+      logoURI, sources: ['admin'],
     },
   });
 
-  return NextResponse.json({ ok: true, coin: created });
-}
-
-/** SSR/edge farklarından etkilenmemek için header’dan cookie okuma yardımcıları */
-async function getCookieFromHeader(
-  headers: Headers,
-  key: string,
-): Promise<string | undefined> {
-  const raw = headers.get('cookie');
-  if (!raw) return undefined;
-  const parts = raw.split(/;\s*/g);
-  for (const p of parts) {
-    const [k, ...rest] = p.split('=');
-    if (k === key) return decodeURIComponent(rest.join('='));
-  }
-  return undefined;
+  return NextResponse.json({ ok: true });
 }
