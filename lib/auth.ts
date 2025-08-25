@@ -9,6 +9,8 @@ function sign(payload: string) {
   return crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
 }
 
+export const runtime = 'nodejs';
+
 export function createAdminToken(username: string) {
   const payload = JSON.stringify({ u: username, t: Date.now() });
   const b64 = Buffer.from(payload).toString('base64url');
