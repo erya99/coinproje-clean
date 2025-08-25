@@ -1,27 +1,35 @@
-import { ChainKind } from '@prisma/client';
+/* PATH: lib/chains.ts */
 
-export const CHAIN_ICONS: Record<ChainKind, string> = {
-  ETHEREUM:  'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  BSC:       'https://cryptologos.cc/logos/bnb-bnb-logo.png',
-  POLYGON:   'https://cryptologos.cc/logos/polygon-matic-logo.png',
-  ARBITRUM:  'https://cryptologos.cc/logos/arbitrum-arb-logo.png',
-  OPTIMISM:  'https://cryptologos.cc/logos/optimism-ethereum-op-logo.png',
-  BASE:      'https://cryptologos.cc/logos/base-eth-logo.png',
-  AVALANCHE: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
-  FANTOM:    'https://cryptologos.cc/logos/fantom-ftm-logo.png',
-  GNOSIS:    'https://cryptologos.cc/logos/gnosis-gno-logo.png',
-  CRONOS:    'https://cryptologos.cc/logos/cronos-cro-logo.png',
-  SOLANA:    'https://cryptologos.cc/logos/solana-sol-logo.png',
-  TRON:      'https://cryptologos.cc/logos/tron-trx-logo.png',
-  TON:       'https://cryptologos.cc/logos/toncoin-ton-logo.png',
-  NEAR:      'https://cryptologos.cc/logos/near-protocol-near-logo.png',
-  COSMOS:    'https://cryptologos.cc/logos/cosmos-atom-logo.png',
-  SUI:       'https://cryptologos.cc/logos/sui-sui-logo.png',
-  APTOS:     'https://cryptologos.cc/logos/aptos-apt-logo.png',
-  STARKNET:  'https://cryptologos.cc/logos/starknet-stark-logo.png',
-  BITCOIN:   'https://cryptologos.cc/logos/bitcoin-btc-logo.png',
-  DOGE:      'https://cryptologos.cc/logos/dogecoin-doge-logo.png',
-  LITECOIN:  'https://cryptologos.cc/logos/litecoin-ltc-logo.png',
-  NATIVE:    'https://cryptologos.cc/logos/ethereum-eth-logo.png',
-  OTHER:     'https://cdn-icons-png.flaticon.com/512/565/565547.png'
-};
+export const CHAINS = {
+  ETHEREUM:  { label: 'Ethereum',            icon: '/chains/eth.svg' },
+  BSC:       { label: 'BNB Smart Chain',     icon: '/chains/bsc.svg' },
+  POLYGON:   { label: 'Polygon',             icon: '/chains/polygon.svg' },
+  ARBITRUM:  { label: 'Arbitrum',            icon: '/chains/arbitrum.svg' },
+  OPTIMISM:  { label: 'Optimism',            icon: '/chains/optimism.svg' },
+  BASE:      { label: 'Base',                icon: '/chains/base.svg' },
+  AVALANCHE: { label: 'Avalanche',           icon: '/chains/avax.svg' },
+  FANTOM:    { label: 'Fantom',              icon: '/chains/fantom.svg' },
+  GNOSIS:    { label: 'Gnosis',              icon: '/chains/gnosis.svg' },
+  CRONOS:    { label: 'Cronos',              icon: '/chains/cronos.svg' },
+  SOLANA:    { label: 'Solana',              icon: '/chains/sol.svg' },
+  TRON:      { label: 'TRON',                icon: '/chains/tron.svg' },
+  TON:       { label: 'TON',                 icon: '/chains/ton.svg' },
+  NEAR:      { label: 'NEAR',                icon: '/chains/near.svg' },
+  COSMOS:    { label: 'Cosmos',              icon: '/chains/cosmos.svg' },
+  SUI:       { label: 'Sui',                 icon: '/chains/sui.svg' },
+  APTOS:     { label: 'Aptos',               icon: '/chains/aptos.svg' },
+  STARKNET:  { label: 'Starknet',            icon: '/chains/starknet.svg' },
+  BITCOIN:   { label: 'Bitcoin',             icon: '/chains/btc.svg' },
+  DOGE:      { label: 'Dogecoin',            icon: '/chains/doge.svg' },
+  LITECOIN:  { label: 'Litecoin',            icon: '/chains/ltc.svg' },
+  NATIVE:    { label: 'Native',              icon: '/chains/native.svg' },
+  OTHER:     { label: 'Other',               icon: '/chains/other.svg' },
+} as const;
+
+export type ChainKey = keyof typeof CHAINS;
+
+// Select için key listesi:
+export const CHAIN_KEYS: ChainKey[] = Object.keys(CHAINS) as ChainKey[];
+
+// İstersen default export da mevcut olsun:
+export default CHAINS;
