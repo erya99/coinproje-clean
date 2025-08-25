@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 
 function LoginFormInner() {
   const sp = useSearchParams();
-  const error = sp.get('error') ?? '';
-  const next = sp.get('next') ?? '/admin/coins';
+  const error = sp.get('error') || '';
+  const next = sp.get('next') || '/admin/coins';
 
   return (
     <div className="mx-auto max-w-sm space-y-4">
@@ -18,19 +18,14 @@ function LoginFormInner() {
         </div>
       )}
 
-      {/* ÖNEMLİ: action artık /api/admin/login */}
-      <form
-        method="post"
-        action={`/api/admin/login?next=${encodeURIComponent(next)}`}
-        className="space-y-3"
-      >
+      <form method="post" action="/admin/api/login" className="space-y-3">
+        <input type="hidden" name="next" value={next} />
         <input
           type="text"
           name="username"
           placeholder="Username"
           className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none"
           required
-          autoComplete="username"
         />
         <input
           type="password"
@@ -38,12 +33,8 @@ function LoginFormInner() {
           placeholder="Password"
           className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none"
           required
-          autoComplete="current-password"
         />
-        <button
-          type="submit"
-          className="w-full rounded-lg bg-primary px-3 py-2 text-white hover:opacity-90"
-        >
+        <button type="submit" className="w-full rounded-lg bg-primary px-3 py-2 text-white hover:opacity-90">
           Sign in
         </button>
       </form>

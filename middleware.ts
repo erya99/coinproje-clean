@@ -1,26 +1,34 @@
+// middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminToken } from './lib/auth';
+
+const ADMIN_AREA = '/admin';
 
 export function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
 
-  // API'yi asla yakalama
-  if (pathname.startsWith('/api')) return NextResponse.next();
+  // Sadece /admin altını koru; login ve login API serbest
+  const isAdmin = pathname === ADMIN_AREA || pathname.startsWith(ADMIN_AREA + '/');
+  if (!isAdmin) return NextResponse.next();
 
-  // Sadece /admin altını koru
-  if (!pathname.startsWith('/admin')) return NextResponse.next();
+  // açık bırakılan yollar
+  if (
+    pathname === '/admin/login' ||
+    pathname === '/admin/api/login' ||
+    pathname === '/admin/api/logout'
+  ) {
+    return NextResponse.next();
+  }
 
-  // Login sayfası serbest
-  if (pathname.startsWith('/admin/login')) return NextResponse.next();
-
-  // Cookie kontrolü
-  if (req.cookies.get('admin')?.value === '1') return NextResponse.next();
+  const token = req.cookies.get('admin_token')?.value;
+  if (verifyAdminToken(token)) return NextResponse.next();
 
   const url = req.nextUrl.clone();
   url.pathname = '/admin/login';
-  url.searchParams.set('next', pathname);
+  url.searchParams.set('next', pathname + (searchParams.toString() ? `?${searchParams.toString()}` : ''));
   return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: ['/admin/:path*', '/api/:path*'], // api için early-return var
+  matcher: ['/admin/:path*'],
 };

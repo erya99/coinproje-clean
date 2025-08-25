@@ -1,8 +1,17 @@
+// app/admin/api/logout/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-export const runtime = 'nodejs';
-export async function GET(req: NextRequest) {
+
+export async function POST(req: NextRequest) {
   const res = NextResponse.redirect(new URL('/admin/login', req.url));
-  res.cookies.set('admin', '', { path: '/', maxAge: 0 });
-  res.cookies.set('admin_name', '', { path: '/', maxAge: 0 });
+  const host = new URL(req.url).hostname;
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+  res.cookies.set('admin_token', '', {
+    httpOnly: true,
+    secure: !isLocalhost,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 0,
+    domain: isLocalhost ? undefined : host,
+  });
   return res;
 }

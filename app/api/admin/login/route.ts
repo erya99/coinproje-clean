@@ -1,41 +1,37 @@
+// app/admin/api/login/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-
-export const runtime = 'nodejs'; // bu route Node.js ortamında çalışır (Edge değil)
+import { checkAdminCredentials, signAdminToken } from '@/lib/auth';
 
 export async function POST(req: NextRequest) {
   const form = await req.formData();
-  const username = String(form.get('username') ?? '');
-  const password = String(form.get('password') ?? '');
+  const username = String(form.get('username') || '');
+  const password = String(form.get('password') || '');
+  const next = String(form.get('next') || '') || '/admin/coins';
 
-  const U = process.env.ADMIN_USERNAME ?? '';
-  const P = process.env.ADMIN_PASSWORD ?? '';
-
-  const url = new URL(req.url);
-  const next = url.searchParams.get('next') ?? '/admin/coins';
-
-  if (username !== U || password !== P) {
-    return NextResponse.redirect(
-      new URL(`/admin/login?error=Wrong+credentials&next=${encodeURIComponent(next)}`, req.url)
-    );
+  if (!checkAdminCredentials(username, password)) {
+    const url = new URL('/admin/login', req.url);
+    url.searchParams.set('error', 'Invalid credentials');
+    if (next) url.searchParams.set('next', next);
+    return NextResponse.redirect(url);
   }
 
-  const isProd = process.env.NODE_ENV === 'production';
-  const maxAge = 60 * 60 * 24; // 1 gün
+  const token = signAdminToken({ u: username });
 
-  const res = NextResponse.redirect(new URL(next, req.url));
-  res.cookies.set('admin', '1', {
-    path: '/',
+  const url = new URL(next.startsWith('http') ? new URL(next).pathname + new URL(next).search : next, req.url);
+
+  const res = NextResponse.redirect(url);
+
+  // cookie domain/secure ayarları: prod’da secure + doğru domain
+  const host = new URL(req.url).hostname;
+  const isLocalhost = host === 'localhost' || host === '127.0.0.1';
+  res.cookies.set('admin_token', token, {
     httpOnly: true,
+    secure: !isLocalhost,
     sameSite: 'lax',
-    secure: isProd,
-    maxAge,
-  });
-  res.cookies.set('admin_name', encodeURIComponent(username), {
     path: '/',
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: isProd,
-    maxAge,
+    maxAge: 60 * 60 * 24 * 7,
+    domain: isLocalhost ? undefined : host, // ÖNEMLİ: shillvote.com’da doğru domain
   });
+
   return res;
 }

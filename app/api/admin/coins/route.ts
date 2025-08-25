@@ -1,41 +1,54 @@
-import { NextResponse } from 'next/server';
+// app/admin/api/coins/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminToken } from '@/lib/auth';
+import path from 'path';
+import { promises as fs } from 'fs';
 import slugify from '@sindresorhus/slugify';
-import { prisma } from '@/lib/prisma';
-import { ChainKind } from '@prisma/client';
-import { getAdminTokenFromCookies, verifyAdminToken } from '@/lib/auth';
+import { prisma } from '@/lib/prisma'; // kendi prisma helper'ınız
 
-export const runtime = 'nodejs';
-
-export async function POST(req: Request) {
-  const token = getAdminTokenFromCookies();
-  if (!verifyAdminToken(token)) return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
-
-  const body = await req.json().catch(() => ({}));
-  const { name, symbol, chainKind, address, logoURI } = body || {};
-
-  if (!name || !symbol || !chainKind || !(chainKind in ChainKind)) {
-    return NextResponse.json({ ok: false, error: 'Invalid body' }, { status: 400 });
+export async function POST(req: NextRequest) {
+  // auth
+  const token = req.cookies.get('admin_token')?.value;
+  if (!verifyAdminToken(token)) {
+    return NextResponse.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const slugBase = `${symbol}-${name}-${chainKind}`;
-  let slug = slugify(slugBase, { lowercase: true });
+  const form = await req.formData();
+  const name = String(form.get('name') || '').trim();
+  const symbol = String(form.get('symbol') || '').trim().toUpperCase();
+  const chainKind = String(form.get('chainKind') || '').trim();
+  const address = String(form.get('address') || '').trim() || null;
 
-  // slug çakışması olursa sonuna sayı ekle
-  let i = 0;
-  while (await prisma.coin.findUnique({ where: { slug } })) {
-    i++;
-    slug = slugify(`${slugBase}-${i}`, { lowercase: true });
+  const file = form.get('logo') as File | null;
+
+  if (!name || !symbol || !chainKind) {
+    return NextResponse.json({ ok: false, error: 'Missing fields' }, { status: 400 });
   }
 
+  let logoURI: string | null = null;
+
+  if (file && file.size > 0) {
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'coins');
+    await fs.mkdir(uploadDir, { recursive: true });
+
+    const ext = file.name?.split('.').pop()?.toLowerCase() || 'png';
+    const base = slugify(`${symbol}-${name}`.toLowerCase());
+    const filename = `${base}-${Date.now()}.${ext}`;
+    const buf = Buffer.from(await file.arrayBuffer());
+    await fs.writeFile(path.join(uploadDir, filename), buf);
+    logoURI = `/uploads/coins/${filename}`;
+  }
+
+  const slug = slugify(`${symbol}-${chainKind}`.toLowerCase());
   const data = await prisma.coin.create({
     data: {
-      name: String(name).trim(),
-      symbol: String(symbol).trim().toUpperCase(),
-      chainKind: chainKind as ChainKind,
-      address: address ? String(address).trim() : null,
-      logoURI: logoURI ? String(logoURI).trim() : null,
+      name,
+      symbol,
+      chainKind: chainKind as any,
+      address,
       slug,
-      sources: ['admin'],
+      logoURI,
+      sources: [],
     },
   });
 

@@ -1,44 +1,34 @@
-export const runtime = 'nodejs';
+// lib/auth.ts
 import crypto from 'crypto';
-import { cookies } from 'next/headers';
-import 'server-only';
 
-const NAME = 'admin_token';
-const SECRET = process.env.ADMIN_SECRET || 'dev-secret';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const ADMIN_SECRET   = process.env.ADMIN_SECRET   || 'change_me';
 
-function sign(payload: string) {
-  return crypto.createHmac('sha256', SECRET).update(payload).digest('hex');
+export function checkAdminCredentials(u: string, p: string) {
+  return u === ADMIN_USERNAME && p === ADMIN_PASSWORD;
 }
 
-export function createAdminToken(username: string) {
-  const payload = JSON.stringify({ u: username, t: Date.now() });
-  const b64 = Buffer.from(payload).toString('base64url');
-  const sig = sign(b64);
-  return `${b64}.${sig}`;
+// çok basit imzalı token (JWT kullanmak istemiyoruz)
+export function signAdminToken(payload: Record<string, any>, maxAgeSec = 60 * 60 * 24 * 7) {
+  const now = Math.floor(Date.now() / 1000);
+  const data = { ...payload, iat: now, exp: now + maxAgeSec };
+  const encoded = Buffer.from(JSON.stringify(data)).toString('base64url');
+  const sig = crypto.createHmac('sha256', ADMIN_SECRET).update(encoded).digest('base64url');
+  return `${encoded}.${sig}`;
 }
 
-export function verifyAdminToken(token: string | undefined | null) {
+export function verifyAdminToken(token?: string | null) {
   if (!token) return false;
-  const [b64, sig] = token.split('.');
-  if (!b64 || !sig) return false;
-  const good = sign(b64) === sig;
-  return good;
-}
-
-export function setAdminCookie(token: string) {
-  cookies().set(NAME, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    path: '/',
-    secure: true,
-    maxAge: 60 * 60 * 8, // 8 saat
-  });
-}
-
-export function clearAdminCookie() {
-  cookies().delete(NAME);
-}
-
-export function getAdminTokenFromCookies() {
-  return cookies().get(NAME)?.value;
+  const [encoded, sig] = token.split('.');
+  if (!encoded || !sig) return false;
+  const expected = crypto.createHmac('sha256', ADMIN_SECRET).update(encoded).digest('base64url');
+  if (expected !== sig) return false;
+  try {
+    const data = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
+    if (typeof data.exp !== 'number' || data.exp < Math.floor(Date.now() / 1000)) return false;
+    return true;
+  } catch {
+    return false;
+  }
 }
