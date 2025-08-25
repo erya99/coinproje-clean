@@ -1,4 +1,4 @@
-// ---------- schema.prisma ----------
+// ---------- prisma/schema.prisma ----------
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,7 +9,6 @@ datasource db {
 }
 
 enum ChainKind {
-  EVM
   ETHEREUM
   BSC
   POLYGON
@@ -35,39 +34,63 @@ enum ChainKind {
   OTHER
 }
 
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model Coin {
   id        String   @id @default(uuid())
   chainKind ChainKind
   chainId   Int?
-  address   String
-  slug      String   @unique
+  address   String?           // manuel eklemeler için opsiyonel
+  slug      String   @unique  // UI için benzersiz slug
   symbol    String
   name      String
   logoURI   String?
-  sources   String[]
+  sources   String[] @default([])
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // ilişkiler
   votes     DailyVote[]
 
   @@index([symbol])
   @@index([name])
   @@index([chainKind])
   @@index([address])
-  // chainId null olabileceği için unique constraint'i kaldırıyoruz
-  // bunun yerine chainKind + address kombinasyonunu unique yapıyoruz
-  @@unique([chainKind, address])
+  @@unique([chainKind, address]) // address NULL değilse benzersiz
 }
 
 model DailyVote {
   id        String   @id @default(uuid())
   coinId    String
-  dateYmd   String   // YYYY-MM-DD (Europe/Istanbul)
+  dateYmd   String               // YYYY-MM-DD (Europe/Istanbul)
   votes     Int      @default(0)
   coin      Coin     @relation(fields: [coinId], references: [id])
   createdAt DateTime @default(now())
 
   @@unique([coinId, dateYmd])
   @@index([dateYmd])
+}
+
+model CoinRequest {
+  id           String        @id @default(uuid())
+  name         String
+  symbol       String
+  chainKind    ChainKind
+  address      String?       // kullanıcı isteğinde opsiyonel
+  logoURI      String?       // URL
+  notes        String?
+  status       RequestStatus @default(PENDING)
+
+  requesterIp  String?
+  requesterUa  String?
+
+  createdAt    DateTime      @default(now())
+  reviewedAt   DateTime?
+  reviewerNote String?
+
+  @@index([status, createdAt])
 }
