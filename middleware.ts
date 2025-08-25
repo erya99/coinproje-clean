@@ -1,31 +1,35 @@
-// middleware.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminToken } from './lib/auth';
 
-const ADMIN_AREA = '/admin';
+const OPEN_ADMIN_PATHS = [
+  '/admin/login',
+  '/admin/api/login',
+  '/admin/api/logout',
+];
 
 export function middleware(req: NextRequest) {
-  const { pathname, searchParams } = req.nextUrl;
+  const { pathname } = req.nextUrl;
 
-  // Sadece /admin altını koru; login ve login API serbest
-  const isAdmin = pathname === ADMIN_AREA || pathname.startsWith(ADMIN_AREA + '/');
-  if (!isAdmin) return NextResponse.next();
-
-  // açık bırakılan yollar
-  if (
-    pathname === '/admin/login' ||
-    pathname === '/admin/api/login' ||
-    pathname === '/admin/api/logout'
-  ) {
+  // Sadece /admin altını koru
+  if (!pathname.startsWith('/admin')) {
     return NextResponse.next();
   }
 
-  const token = req.cookies.get('admin_token')?.value;
-  if (verifyAdminToken(token)) return NextResponse.next();
+  // Login & auth API yollarını korumadan muaf tut
+  if (OPEN_ADMIN_PATHS.some((p) => pathname === p)) {
+    return NextResponse.next();
+  }
 
+  // Token kontrolü
+  const token = req.cookies.get('admin_token')?.value || null;
+  if (verifyAdminToken(token)) {
+    return NextResponse.next();
+  }
+
+  // Yetkisiz -> login sayfasına yönlendir
   const url = req.nextUrl.clone();
   url.pathname = '/admin/login';
-  url.searchParams.set('next', pathname + (searchParams.toString() ? `?${searchParams.toString()}` : ''));
+  url.searchParams.set('next', pathname);
   return NextResponse.redirect(url);
 }
 
