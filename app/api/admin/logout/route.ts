@@ -1,7 +1,8 @@
-import { NextResponse } from 'next/server';
-
-export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.delete('admin_token');
+import { NextRequest, NextResponse } from 'next/server';
+export const runtime = 'nodejs';
+export async function GET(req: NextRequest) {
+  const res = NextResponse.redirect(new URL('/admin/login', req.url));
+  res.cookies.set('admin', '', { path: '/', maxAge: 0 });
+  res.cookies.set('admin_name', '', { path: '/', maxAge: 0 });
   return res;
 }

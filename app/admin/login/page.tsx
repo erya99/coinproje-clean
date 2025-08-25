@@ -4,8 +4,9 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 function LoginFormInner() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  const sp = useSearchParams();
+  const error = sp.get('error') ?? '';
+  const next = sp.get('next') ?? '/admin/coins';
 
   return (
     <div className="mx-auto max-w-sm space-y-4">
@@ -17,13 +18,15 @@ function LoginFormInner() {
         </div>
       )}
 
-      <form method="post" action="/admin/api/login" className="space-y-3">
+      {/* next paramını koru */}
+      <form method="post" action={`/admin/api/login?next=${encodeURIComponent(next)}`} className="space-y-3">
         <input
           type="text"
           name="username"
           placeholder="Username"
           className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none"
           required
+          autoComplete="username"
         />
         <input
           type="password"
@@ -31,6 +34,7 @@ function LoginFormInner() {
           placeholder="Password"
           className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none"
           required
+          autoComplete="current-password"
         />
         <button
           type="submit"
@@ -43,13 +47,10 @@ function LoginFormInner() {
   );
 }
 
-type LoginPageProps = {};
-
-export default function LoginPage({}) {
+export default function LoginPage() {
   return (
     <Suspense fallback={<div className="mx-auto max-w-sm">Loading…</div>}>
       <LoginFormInner />
     </Suspense>
   );
 }
-
