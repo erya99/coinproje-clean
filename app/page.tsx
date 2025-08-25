@@ -28,8 +28,8 @@ export default async function Home() {
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-2">Today’s Most Voted Coins</h1>
-      <p className="text-sm text-muted-foreground mb-6">
+      <h1 className="mb-2 text-2xl font-bold">Today’s Most Voted Coins</h1>
+      <p className="mb-6 text-sm text-muted-foreground">
         Not financial advice. Votes reflect user opinions.
       </p>
 
@@ -42,18 +42,17 @@ export default async function Home() {
           and cast your vote.
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((it) => (
-            <CoinCard
-              key={it.id}
-              href={`/coin/${it.coin.slug}`}
-              logo={it.coin.logoURI}
-              name={it.coin.name}
-              symbol={it.coin.symbol}
-              votes={it.votes}
-            />
+            <li key={it.id} className="space-y-1">
+              {/* CoinCard artık coin prop’u alıyor */}
+              <CoinCard coin={it.coin} />
+              <div className="px-1 text-xs text-muted-foreground">
+                {it.votes} votes today
+              </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </>
   );
