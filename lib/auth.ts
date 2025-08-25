@@ -1,33 +1,58 @@
 // lib/auth.ts
-import crypto from 'crypto';
+const ALG = 'HS256';
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || '';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
-const ADMIN_SECRET   = process.env.ADMIN_SECRET   || 'change_me';
+// --- Node tarafı (API routes) imzalama
+export function signAdminToken(payload: Record<string, any>): string {
+  // minimal JWT (header.payload.signature)
+  const header = { alg: ALG, typ: 'JWT' };
+  const enc = (obj: any) =>
+    Buffer.from(JSON.stringify(obj)).toString('base64url');
 
-export function checkAdminCredentials(u: string, p: string) {
-  return u === ADMIN_USERNAME && p === ADMIN_PASSWORD;
+  const part1 = enc(header);
+  const part2 = enc({
+    ...payload,
+    iat: Math.floor(Date.now() / 1000),
+  });
+  const data = `${part1}.${part2}`;
+
+  const crypto = require('crypto') as typeof import('crypto');
+  const hmac = crypto
+    .createHmac('sha256', process.env.ADMIN_SECRET as string)
+    .update(data)
+    .digest('base64url');
+
+  return `${data}.${hmac}`;
 }
 
-// çok basit imzalı token (JWT kullanmak istemiyoruz)
-export function signAdminToken(payload: Record<string, any>, maxAgeSec = 60 * 60 * 24 * 7) {
-  const now = Math.floor(Date.now() / 1000);
-  const data = { ...payload, iat: now, exp: now + maxAgeSec };
-  const encoded = Buffer.from(JSON.stringify(data)).toString('base64url');
-  const sig = crypto.createHmac('sha256', ADMIN_SECRET).update(encoded).digest('base64url');
-  return `${encoded}.${sig}`;
-}
-
-export function verifyAdminToken(token?: string | null) {
-  if (!token) return false;
-  const [encoded, sig] = token.split('.');
-  if (!encoded || !sig) return false;
-  const expected = crypto.createHmac('sha256', ADMIN_SECRET).update(encoded).digest('base64url');
-  if (expected !== sig) return false;
+// --- Edge tarafı (middleware) doğrulama
+export function verifyAdminToken(token: string | null): boolean {
   try {
-    const data = JSON.parse(Buffer.from(encoded, 'base64url').toString('utf8'));
-    if (typeof data.exp !== 'number' || data.exp < Math.floor(Date.now() / 1000)) return false;
-    return true;
+    if (!token) return false;
+    const [p1, p2, p3] = token.split('.');
+    if (!p1 || !p2 || !p3) return false;
+    const data = `${p1}.${p2}`;
+
+    const keyBytes = new TextEncoder().encode(process.env.ADMIN_SECRET || '');
+    const algoKey = { name: 'HMAC', hash: 'SHA-256' } as const;
+
+    // @ts-ignore - WebCrypto Edge
+    return (globalThis.crypto?.subtle
+      ? globalThis.crypto.subtle
+      : (require('crypto').webcrypto.subtle)
+    )
+      .importKey('raw', keyBytes, algoKey, false, ['sign'])
+      .then((key: CryptoKey) =>
+        (globalThis.crypto?.subtle || require('crypto').webcrypto.subtle).sign(
+          algoKey,
+          key,
+          new TextEncoder().encode(data)
+        )
+      )
+      .then((sig: ArrayBuffer) => {
+        const b64 = Buffer.from(new Uint8Array(sig)).toString('base64url');
+        return b64 === p3;
+      })
+      .catch(() => false) as unknown as boolean;
   } catch {
     return false;
   }
