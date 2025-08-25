@@ -1,28 +1,26 @@
 export const runtime = 'nodejs';
 
-import { NextRequest, NextResponse } from 'next/server';
-import { makeAdminToken } from '@/lib/auth';
+import { NextResponse } from 'next/server';
+import { signAdminToken } from '@/lib/auth';
 
-//    ▼▼▼ GÜNCELLENDİ ▼▼▼
+// login sonrası gidilecek sayfayı temizle
 function sanitizeNext(next: string | null): string {
-  if (!next) return '/admin/coins';
-  if (next === '/admin' || next === '/admin/') return '/admin/coins';
-  if (!next.startsWith('/admin')) return '/admin/coins';
+  if (!next || !next.startsWith('/admin')) return '/admin/coins';
   if (next.startsWith('/admin/api')) return '/admin/coins';
   return next;
 }
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const form = await req.formData();
   const username = String(form.get('username') ?? '');
   const password = String(form.get('password') ?? '');
-  const next = sanitizeNext((form.get('next') as string) || req.nextUrl.searchParams.get('next'));
+  const next = sanitizeNext(new URL(req.url).searchParams.get('next'));
 
   const ok =
     username === process.env.ADMIN_USERNAME &&
     password === process.env.ADMIN_PASSWORD;
 
-  const url = req.nextUrl.clone();
+  const url = new URL(req.url);
 
   if (!ok) {
     url.pathname = '/admin/login';
@@ -31,14 +29,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.redirect(url, { status: 303 });
   }
 
-  const token = makeAdminToken();
-  const res = NextResponse.redirect(new URL(next, req.nextUrl), { status: 303 });
+  const token = signAdminToken({ u: username });
+
+  const res = NextResponse.redirect(new URL(next, req.url), { status: 303 });
   res.cookies.set('admin_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
+    path: '/',           // tüm sitede geçerli olsun
+    maxAge: 60 * 60 * 24 * 7, // 7 gün
   });
   return res;
 }
