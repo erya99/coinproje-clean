@@ -11,27 +11,28 @@ export default function SubmitPage() {
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setPending(true);
-    setErr(null);
     setOk(false);
+    setErr(null);
 
     try {
       const fd = new FormData(e.currentTarget);
+      const payload = {
+        name: String(fd.get('name') || '').trim(),
+        symbol: String(fd.get('symbol') || '').trim(),
+        chainKind: String(fd.get('chainKind') || '').trim().toUpperCase(),
+        address: String(fd.get('address') || '').trim(),
+        logoURI: String(fd.get('logoURI') || '').trim(),
+      };
 
-      // 👇 Doğru endpoint (tekil) ve FormData gönderimi
       const res = await fetch('/api/request', {
         method: 'POST',
-        body: fd,
-        // NOT: FormData için Content-Type set ETME!
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
-      // Response JSON değilse de yakalayalım
-      let data: any = null;
-      const text = await res.text();
-      try { data = JSON.parse(text); } catch { /* noop */ }
-
+      const data = await res.json().catch(() => ({}));
       if (!res.ok || !data?.ok) {
-        const msg = data?.error || `Request failed (${res.status})`;
-        throw new Error(msg);
+        throw new Error(data?.error || `Request failed (${res.status})`);
       }
 
       setOk(true);
@@ -51,55 +52,20 @@ export default function SubmitPage() {
       </p>
 
       <form onSubmit={onSubmit} className="grid gap-3 rounded-xl border bg-card p-4">
-        <input
-          name="name"
-          required
-          placeholder="Coin name"
-          className="rounded border bg-background px-3 py-2"
-        />
-        <input
-          name="symbol"
-          required
-          placeholder="Symbol"
-          className="rounded border bg-background px-3 py-2"
-        />
-        <select
-          name="chainKind"
-          className="rounded border bg-background px-3 py-2"
-          defaultValue="ETHEREUM"
-        >
-          {Object.keys(ChainKind).map((k) => (
-            <option key={k} value={k}>
-              {k}
-            </option>
+        <input name="name" required placeholder="Coin name" className="rounded border bg-background px-3 py-2" />
+        <input name="symbol" required placeholder="Symbol" className="rounded border bg-background px-3 py-2" />
+        <select name="chainKind" className="rounded border bg-background px-3 py-2" defaultValue="ETHEREUM">
+          {Object.keys(ChainKind).map(k => (
+            <option key={k} value={k}>{k}</option>
           ))}
         </select>
-        <input
-          name="address"
-          placeholder="Contract address (optional)"
-          className="rounded border bg-background px-3 py-2"
-        />
-        <input
-          name="logoURI"
-          placeholder="Logo URL (optional)"
-          className="rounded border bg-background px-3 py-2"
-        />
+        <input name="address" placeholder="Contract address (optional)" className="rounded border bg-background px-3 py-2" />
+        <input name="logoURI" placeholder="Logo URL (optional)" className="rounded border bg-background px-3 py-2" />
 
-        {ok && (
-          <p className="text-sm text-emerald-500">
-            Thanks! Your request has been submitted.
-          </p>
-        )}
-        {err && (
-          <p className="text-sm text-red-500">
-            {err}
-          </p>
-        )}
+        {ok && <p className="text-sm text-emerald-500">Thanks! Your request has been submitted.</p>}
+        {err && <p className="text-sm text-red-500">{err}</p>}
 
-        <button
-          disabled={pending}
-          className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-60"
-        >
+        <button disabled={pending} className="rounded bg-primary px-4 py-2 text-primary-foreground disabled:opacity-60">
           {pending ? 'Sending…' : 'Submit'}
         </button>
       </form>
