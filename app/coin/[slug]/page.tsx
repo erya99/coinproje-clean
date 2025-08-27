@@ -1,10 +1,19 @@
-// app/coins/page.tsx
 import Image from 'next/image';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import type { Prisma } from '@prisma/client';
+import VoteButton from './vote-button';
+import AdUnit from '@/components/AdUnit';
 
 export const dynamic = 'force-dynamic';
+
+function todayYmdTR() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
 
 function normalizeLogo(url?: string | null) {
   if (!url) return null;
@@ -12,73 +21,55 @@ function normalizeLogo(url?: string | null) {
   return url;
 }
 
-type PageProps = { searchParams?: { q?: string } };
+type PageProps = { params: { slug: string } };
 
-export default async function CoinsPage({ searchParams }: PageProps) {
-  const q = (searchParams?.q ?? '').trim();
+export default async function CoinDetailPage({ params }: PageProps) {
+  const { slug } = params;
 
-  const where: Prisma.CoinWhereInput = q
-    ? {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { symbol: { contains: q, mode: 'insensitive' } },
-          { address: { contains: q, mode: 'insensitive' } },
-        ],
-      }
-    : {};
+  const coin = await prisma.coin.findUnique({ where: { slug } });
+  if (!coin) return notFound();
 
-  const items = await prisma.coin.findMany({
-    where,
-    orderBy: [{ name: 'asc' }],
-    take: 500,
+  const ymd = todayYmdTR();
+  const dv = await prisma.dailyVote.findFirst({
+    where: { coinId: coin.id, dateYmd: ymd },
   });
+  const votesToday = dv?.votes ?? 0;
+
+  const logo = normalizeLogo(coin.logoURI);
 
   return (
     <>
-      <h1 className="text-2xl font-bold mb-2">All Coins</h1>
-      <p className="text-sm text-muted-foreground mb-4">Today’s votes</p>
-
-      {/* Arama kutusu – karanlık temada beyaz görünmesin diye bg-card/border kullanıyoruz */}
-      <form className="mb-4" action="/coins">
-        <input
-          name="q"
-          defaultValue={q}
-          placeholder="Search: name, symbol, address"
-          className="w-full rounded-xl border border-border bg-card text-foreground
-                     placeholder:text-muted-foreground px-4 py-3 outline-none
-                     focus:ring-2 focus:ring-primary/40"
-        />
-      </form>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {items.map((c) => {
-          const src = normalizeLogo(c.logoURI);
-          return (
-            <Link
-              key={c.id}
-              href={`/coin/${c.slug}`}
-              className="group rounded-xl border border-border bg-card p-4 hover:bg-muted transition"
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-10 overflow-hidden rounded-full border border-border bg-muted shrink-0">
-                  {src ? (
-                    <Image src={src} alt={c.name} width={40} height={40} />
-                  ) : (
-                    <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                      {c.symbol?.slice(0, 3)}
-                    </div>
-                  )}
-                </div>
-
-                <div className="min-w-0">
-                  <div className="truncate font-medium">{c.name}</div>
-                  <div className="text-xs text-muted-foreground">{c.symbol}</div>
-                </div>
-              </div>
-            </Link>
-          );
-        })}
+      <div className="mb-6">
+        <Link href="/coins" className="text-sm text-muted-foreground hover:underline">
+          ← All coins
+        </Link>
       </div>
+
+      <div className="rounded-2xl border border-border bg-card p-5 mb-4">
+        <div className="flex items-center gap-3">
+          <div className="size-12 overflow-hidden rounded-full border border-border bg-muted shrink-0">
+            {logo ? (
+              <Image src={logo} alt={coin.name} width={48} height={48} />
+            ) : (
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                {coin.symbol?.slice(0, 3)}
+              </div>
+            )}
+          </div>
+
+          <div className="min-w-0">
+            <div className="truncate text-lg font-semibold">{coin.name}</div>
+            <div className="text-xs text-muted-foreground">{coin.symbol}</div>
+          </div>
+
+          <div className="ml-auto rounded-lg bg-primary/15 px-2 py-1 text-xs text-primary">
+            Today: {votesToday.toLocaleString('tr-TR')} votes
+          </div>
+        </div>
+      </div>
+
+      <VoteButton coinId={coin.id} />
+      <AdUnit slot="7224318004" className="mt-6" collapseIfEmpty />
     </>
   );
 }
