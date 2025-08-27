@@ -1,51 +1,49 @@
-// app/admin/request/page.tsx
 import { prisma } from '@/lib/prisma';
+import { rejectRequest } from './_actions';
+
 export const dynamic = 'force-dynamic';
 
 export default async function AdminRequestsPage() {
-  const rows = await prisma.coinRequest.findMany({
+  const items = await prisma.coinRequest.findMany({
     orderBy: { createdAt: 'desc' },
     take: 500,
   });
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <h1 className="text-xl font-semibold">User Requests</h1>
 
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-sm">
           <thead className="bg-muted/40">
-            <tr className="[&>th]:px-3 [&>th]:py-2 text-left">
-              <th className="w-[28%]">Name</th>
-              <th className="w-[15%]">Symbol</th>
-              <th className="w-[18%]">Chain</th>
-              <th className="w-[24%]">Address</th>
-              <th className="w-[10%]">Status</th>
-              <th className="w-[5%] text-right pr-3">Actions</th>
+            <tr className="[&>th]:px-4 [&>th]:py-2 text-left">
+              <th>Name</th>
+              <th>Symbol</th>
+              <th>Chain</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th className="w-24">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
+            {items.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
-                  No requests.
+                <td colSpan={6} className="px-4 py-6 text-center text-muted-foreground">
+                  No requests
                 </td>
               </tr>
             ) : (
-              rows.map((r) => (
-                <tr key={r.id} className="border-t">
-                  <td className="px-3 py-2">{r.name}</td>
-                  <td className="px-3 py-2">{r.symbol}</td>
-                  <td className="px-3 py-2">{r.chainKind}</td>
-                  <td className="px-3 py-2">{r.address || '-'}</td>
-                  <td className="px-3 py-2">{r.status}</td>
-                  <td className="px-3 py-2">
-                    {/* Sadece Reject – isteği tamamen siler */}
-                    <form
-                      method="post"
-                      action={`/admin/api/requests/${r.id}/reject`}
-                      className="flex justify-end"
-                    >
+              items.map((r) => (
+                <tr key={r.id} className="border-t [&>td]:px-4 [&>td]:py-2">
+                  <td className="font-medium">{r.name}</td>
+                  <td>{r.symbol}</td>
+                  <td>{r.chainKind}</td>
+                  <td>{r.address || '-'}</td>
+                  <td>{r.status}</td>
+                  <td>
+                    {/* Sadece REJECT: satırı siler */}
+                    <form action={rejectRequest}>
+                      <input type="hidden" name="id" value={r.id} />
                       <button
                         type="submit"
                         className="rounded bg-red-600 px-3 py-1 text-white hover:opacity-90"
