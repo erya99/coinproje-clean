@@ -1,6 +1,5 @@
 // app/admin/request/page.tsx
 import { prisma } from '@/lib/prisma';
-
 export const dynamic = 'force-dynamic';
 
 export default async function AdminRequestsPage() {
@@ -41,10 +40,10 @@ export default async function AdminRequestsPage() {
                   <td className="px-3 py-2">{r.address || '-'}</td>
                   <td className="px-3 py-2">{r.status}</td>
                   <td className="px-3 py-2">
-                    {/* Sadece Reject - isteği tamamen siler */}
+                    {/* Sadece Reject – isteği tamamen siler */}
                     <form
-                      action={`/admin/api/request/${r.id}/reject`}
                       method="post"
+                      action={`/admin/api/requests/${r.id}/reject`}
                       className="flex justify-end"
                     >
                       <button
