@@ -44,11 +44,15 @@ export default async function Home() {
       ) : (
         <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {items.map((it) => (
-            <li key={it.id} className="space-y-1">
-              {/* CoinCard artık coin prop’u alıyor */}
-              <CoinCard coin={it.coin} />
-              <div className="px-1 text-xs text-muted-foreground">
-                {it.votes} votes today
+            <li key={it.id}>
+              {/* Kartı relative bir kapsayıcıya alıp sağ-üst badge’i üstüne oturtuyoruz */}
+              <div className="relative">
+                <CoinCard coin={it.coin} />
+
+                {/* Sağ üstte yeşil votes rozeti (tüm sayfalarda kullandığın stile uyumlu) */}
+                <span className="pointer-events-none absolute right-3 top-3 rounded-full bg-emerald-500/15 px-2 py-1 text-xs text-emerald-400">
+                  {it.votes} votes
+                </span>
               </div>
             </li>
           ))}

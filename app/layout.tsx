@@ -3,14 +3,13 @@ import './globals.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import Script from 'next/script';            // ⬅️ AdSense için eklendi
+import Script from 'next/script';            // ⬅️ AdSense için
 import { ThemeProvider } from '@/components/theme-provider';
 import ThemeToggle from '@/components/theme-toggle';
 
 export const metadata: Metadata = {
   title: 'ShillVote — Today’s Most Voted Coins',
-  description:
-    'Coin ranking based on user votes. Not financial advice.',
+  description: 'Coin ranking based on user votes. Not financial advice.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -34,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               <Link href="/" prefetch={false} className="font-semibold tracking-tight">
                 <span className="text-primary">Shill</span>Vote
               </Link>
+
               <div className="flex items-center gap-2">
                 <Link
                   href="/coins"
@@ -41,6 +41,15 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 >
                   Coins
                 </Link>
+
+                {/* ✅ Yeni: Submit butonu */}
+                <Link
+                  href="/submit"
+                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm hover:bg-muted transition"
+                >
+                  Submit
+                </Link>
+
                 <ThemeToggle />
               </div>
             </div>
