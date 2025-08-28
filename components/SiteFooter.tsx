@@ -26,8 +26,8 @@ export default function SiteFooter() {
               <span className="text-primary">Shill</span>Vote
             </Link>
             <p className="text-sm text-muted-foreground">
-              ShillVote; topluluk oylarıyla projeleri öne çıkaran, basit ve hızlı
-              bir kripto oylama/keşif platformudur. Yatırım tavsiyesi değildir.
+              ShillVote is a simple and fast crypto voting/discovery platform that highlights projects
+              through community votes. It is not financial advice.
             </p>
           </div>
 
