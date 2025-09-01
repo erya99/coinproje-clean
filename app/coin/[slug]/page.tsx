@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import VoteButton from './vote-button';
-import AdUnit from '@/components/AdUnit';
+import AAdsBanner from '@/components/Ads/AAdsBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -68,8 +68,13 @@ export default async function CoinDetailPage({ params }: PageProps) {
         </div>
       </div>
 
+      {/* Vote butonu */}
       <VoteButton coinId={coin.id} />
-      <AdUnit slot="7224318004" className="mt-6" collapseIfEmpty />
+
+      {/* Reklam: Vote butonunun hemen altı */}
+      <div className="mt-6">
+        <AAdsBanner unitId="2408771" width="70%" height="250px" />
+      </div>
     </>
   );
 }
