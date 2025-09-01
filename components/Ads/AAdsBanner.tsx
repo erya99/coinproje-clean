@@ -1,21 +1,15 @@
 type Props = {
-  unitId: string;       // A-Ads panelinden aldığın ID (ör: 2408771)
-  width?: string;       // genişlik (% veya px)
-  height?: string;      // yükseklik (ör: "250px")
+  unitId: string;
+  className?: string;
 };
 
-export default function AAdsBanner({
-  unitId,
-  width = "70%",
-  height = "250px", // height:auto CLS riski yaratır, min-height ekliyoruz
-}: Props) {
+export default function AAdsBanner({ unitId, className = "" }: Props) {
   return (
     <div
-      id="frame"
+      className={`w-full flex justify-center ${className}`}
       style={{
-        width: "100%",
-        margin: "auto",
-        background: "rgba(0, 0, 0, 0.5)",
+        margin: "0 auto",
+        background: "transparent",
         position: "relative",
         zIndex: 99998,
       }}
@@ -26,11 +20,13 @@ export default function AAdsBanner({
         style={{
           border: "0",
           padding: "0",
-          width: width,
-          minHeight: height,   // güvenli yükseklik
+          width: "100%",          // container kadar geniş
+          maxWidth: "728px",      // büyük ekranda üst sınır
+          height: "auto",         // reklam boyutuna uyum sağla
+          aspectRatio: "728/90",  // CLS önlemek için: genişlik 728px iken 90px yükseklik
           overflow: "hidden",
           display: "block",
-          margin: "auto",
+          margin: "0 auto",
           backgroundColor: "transparent",
         }}
         title="A-Ads banner"

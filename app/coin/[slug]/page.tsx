@@ -73,7 +73,7 @@ export default async function CoinDetailPage({ params }: PageProps) {
 
       {/* Reklam: Vote butonunun hemen altı */}
       <div className="mt-6">
-        <AAdsBanner unitId="2408771" width="70%" height="250px" />
+        <AAdsBanner unitId="2408771" />
       </div>
     </>
   );
