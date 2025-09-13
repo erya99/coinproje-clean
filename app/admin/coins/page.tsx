@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
 import DeleteCoinButton from './parts/DeleteCoinButton';
+import { absUrl } from '@/lib/abs-url';
 
 function getBaseUrl() {
   const h = headers();
@@ -14,8 +15,7 @@ function getBaseUrl() {
 }
 
 async function getCoins() {
-  const base = getBaseUrl();
-  const res = await fetch(`${base}/api/admin/coins`, { cache: 'no-store' });
+  const res = await fetch(absUrl('/api/admin/coins'), { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to load coins');
   return res.json();
 }
