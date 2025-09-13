@@ -1,7 +1,7 @@
+// app/api/admin/coins/[id]/route.ts
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import type { ChainKind } from '@prisma/client';
-import { Prisma } from '@prisma/client';
+import { Prisma, ChainKind } from '@prisma/client';
 
 const EVM_KINDS: ChainKind[] = ['ETHEREUM','BSC','POLYGON','ARBITRUM','OPTIMISM','BASE','AVALANCHE','FANTOM','GNOSIS','CRONOS'];
 function normalizeAddress(kind: ChainKind, addr?: string | null) {
@@ -11,9 +11,8 @@ function normalizeAddress(kind: ChainKind, addr?: string | null) {
   return EVM_KINDS.includes(kind) ? a.toLowerCase() : a;
 }
 
-function pickBody(body:any){
+function pickBody(body: any) {
   const kind = body?.chainKind as ChainKind | undefined;
-  // undefined olanlara dokunmayacağız
   return {
     name: body?.name !== undefined ? String(body.name) : undefined,
     symbol: body?.symbol !== undefined ? String(body.symbol) : undefined,
@@ -38,11 +37,15 @@ export async function PUT(req: Request, { params }: Params) {
     const raw = pickBody(body);
     const data: any = {};
     for (const k in raw) if ((raw as any)[k] !== undefined) data[k] = (raw as any)[k];
+
     const updated = await prisma.coin.update({ where: { id: params.id }, data });
     return NextResponse.json(updated);
   } catch (err: any) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
-      return NextResponse.json({ error: 'Duplicate: same address already exists on this chain (or slug already taken).' }, { status: 409 });
+      return NextResponse.json(
+        { error: 'Duplicate: same address already exists on this chain (or slug already taken).' },
+        { status: 409 }
+      );
     }
     console.error('PUT /api/admin/coins/[id]', err);
     return NextResponse.json({ error: 'PUT failed' }, { status: 500 });
