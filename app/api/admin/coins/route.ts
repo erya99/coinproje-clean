@@ -1,17 +1,36 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
+import type { ChainKind } from '@prisma/client';
 
-// Sadece şemadaki alanları kabul et
+function slugify(name: string) {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/['"()]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+async function ensureUniqueSlug(base: string) {
+  let s = base || 'coin';
+  let i = 1;
+  while (true) {
+    const exists = await prisma.coin.findUnique({ where: { slug: s } });
+    if (!exists) return s;
+    s = `${base}-${i++}`;
+  }
+}
+
 function pickCoinData(body: any) {
+  // Şemanla birebir uyumlu alanlar:
   return {
-    name: body?.name as string,
-    symbol: body?.symbol as string,
-    slug: body?.slug as string,
-    chainKind: body?.chainKind,         // enum string (örn. "BSC")
-    chainId: body?.chainId ?? null,     // number | null
-    address: body?.address || null,     // string | null
-    logoURI: body?.logoURI || null,     // string | null (dosya upload sonrası URL)
-    // sources şemada var ama zorunlu değil -> otomatik []
+    name: String(body?.name ?? ''),
+    symbol: String(body?.symbol ?? ''),
+    // slug yoksa API içinde üretilecek
+    chainKind: body?.chainKind as ChainKind,
+    chainId: body?.chainId === '' || body?.chainId === undefined ? null : Number(body.chainId),
+    address: body?.address ? String(body.address) : null,
+    logoURI: body?.logoURI ? String(body.logoURI) : null,
   };
 }
 
@@ -23,6 +42,14 @@ export async function GET() {
 export async function POST(req: Request) {
   const body = await req.json();
   const data = pickCoinData(body);
-  const created = await prisma.coin.create({ data });
+
+  // slug otomatik
+  const requested = String(body?.slug ?? '').trim();
+  const base = requested || slugify(data.name || data.symbol);
+  const slug = await ensureUniqueSlug(base);
+
+  const created = await prisma.coin.create({
+    data: { ...data, slug },
+  });
   return NextResponse.json(created);
 }

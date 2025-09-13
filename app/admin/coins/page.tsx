@@ -1,7 +1,8 @@
+import DeleteCoinButton from '././parts/DeleteCoinButton';
 import Link from 'next/link';
 
 async function getCoins() {
-  const res = await fetch('/api/admin/coins', { cache: 'no-store' });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins`, { cache: 'no-store' });
   if (!res.ok) throw new Error('Failed to load coins');
   return res.json();
 }
@@ -35,17 +36,7 @@ export default async function CoinsPage() {
                 <td className="p-2 text-center">{c.address ? `${c.address.slice(0,6)}…${c.address.slice(-4)}` : '-'}</td>
                 <td className="p-2 text-center">
                   <Link href={`/admin/coins/${c.id}/edit`} className="underline mr-3">Edit</Link>
-                  <form className="inline">
-                    <button
-                      className="underline text-red-500"
-                      formAction={async () => {
-                        'use server';
-                        await fetch(`/api/admin/coins/${c.id}`, { method: 'DELETE' });
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </form>
+                  <DeleteCoinButton id={c.id} />
                 </td>
               </tr>
             ))}

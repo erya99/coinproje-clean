@@ -1,15 +1,15 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { ChainKind } from '@prisma/client';
 
 export type CoinInput = {
   name: string;
   symbol: string;
-  slug: string;
   chainKind: ChainKind;
   chainId?: number | null;
   address?: string | null;
-  logoURI?: string | null; // upload sonrası gelen URL
+  logoURI?: string | null;
 };
 
 const CHAINS: ChainKind[] = [
@@ -20,21 +20,24 @@ const CHAINS: ChainKind[] = [
 
 export default function CoinForm({
   initial,
-  onSubmit,
+  mode, // 'create' | 'edit'
+  id,   // edit'te gerekli
 }: {
   initial?: Partial<CoinInput>;
-  onSubmit: (v: CoinInput) => Promise<void>;
+  mode: 'create' | 'edit';
+  id?: string;
 }) {
+  const router = useRouter();
   const [v, setV] = useState<CoinInput>({
     name: initial?.name ?? '',
     symbol: initial?.symbol ?? '',
-    slug: initial?.slug ?? '',
     chainKind: (initial?.chainKind as ChainKind) ?? 'BSC',
     chainId: initial?.chainId ?? null,
     address: initial?.address ?? '',
     logoURI: initial?.logoURI ?? '',
   });
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   function set<K extends keyof CoinInput>(k: K, val: CoinInput[K]) {
     setV((prev) => ({ ...prev, [k]: val }));
@@ -59,19 +62,37 @@ export default function CoinForm({
     }
   }
 
+  async function submit() {
+    setSaving(true);
+    try {
+      const payload = { ...v };
+      const url = mode === 'create' ? '/api/admin/coins' : `/api/admin/coins/${id}`;
+      const method = mode === 'create' ? 'POST' : 'PUT';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) {
+        const t = await res.text();
+        throw new Error(t || 'Request failed');
+      }
+      router.push('/admin/coins');
+      router.refresh();
+    } catch (e: any) {
+      alert(e.message || 'Save failed');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
-    <form
-      className="space-y-3"
-      onSubmit={async (e) => { e.preventDefault(); await onSubmit(v); }}
-    >
+    <form className="space-y-3" onSubmit={(e)=>{ e.preventDefault(); submit(); }}>
       <div className="grid md:grid-cols-2 gap-3">
         <input className="rounded border p-2" placeholder="Name"
                value={v.name} onChange={(e)=>set('name', e.target.value)} />
         <input className="rounded border p-2" placeholder="Symbol"
                value={v.symbol} onChange={(e)=>set('symbol', e.target.value)} />
-
-        <input className="rounded border p-2" placeholder="Slug"
-               value={v.slug} onChange={(e)=>set('slug', e.target.value)} />
 
         <select className="rounded border p-2" value={v.chainKind}
                 onChange={(e)=>set('chainKind', e.target.value as ChainKind)}>
@@ -84,7 +105,6 @@ export default function CoinForm({
         <input className="rounded border p-2 md:col-span-2" placeholder="Contract address (optional)"
                value={v.address ?? ''} onChange={(e)=>set('address', e.target.value)} />
 
-        {/* Logo upload */}
         <div className="md:col-span-2 space-y-2">
           <div className="flex items-center gap-3">
             <input type="file" accept="image/*" onChange={handleFileChange} />
@@ -92,16 +112,17 @@ export default function CoinForm({
             {v.logoURI && <span className="text-xs text-muted-foreground">Saved: {v.logoURI}</span>}
           </div>
           {v.logoURI && (
-            // Preview
             // eslint-disable-next-line @next/next/no-img-element
             <img src={v.logoURI} alt="logo" className="h-12 w-12 rounded-full border" />
           )}
         </div>
       </div>
 
-      <button disabled={uploading}
-        className="rounded bg-primary px-4 py-2 text-black font-medium disabled:opacity-50">
-        Save
+      <button
+        disabled={uploading || saving}
+        className="rounded bg-primary px-4 py-2 text-black font-medium disabled:opacity-50"
+      >
+        {saving ? 'Saving…' : 'Save'}
       </button>
     </form>
   );
