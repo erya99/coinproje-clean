@@ -1,35 +1,32 @@
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import type { ChainKind } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
-function slugify(name: string) {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/['"()]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+function slugify(s:string){ return s.toLowerCase().trim().replace(/['"()]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,''); }
+async function ensureUniqueSlug(base:string){
+  let s = base || 'coin', i = 1;
+  while (await prisma.coin.findUnique({ where:{ slug:s } })) s = `${base}-${i++}`;
+  return s;
 }
 
-async function ensureUniqueSlug(base: string) {
-  let s = base || 'coin';
-  let i = 1;
-  while (true) {
-    const exists = await prisma.coin.findUnique({ where: { slug: s } });
-    if (!exists) return s;
-    s = `${base}-${i++}`;
-  }
+// EVM-benzeri zincirlerde adresi lowercase'e çekelim (checksum değil ama uniq karşılaştırmada tutarlı)
+const EVM_KINDS: ChainKind[] = ['ETHEREUM','BSC','POLYGON','ARBITRUM','OPTIMISM','BASE','AVALANCHE','FANTOM','GNOSIS','CRONOS'];
+function normalizeAddress(kind: ChainKind, addr?: string | null) {
+  if (!addr) return null;
+  const a = addr.trim();
+  if (!a) return null;
+  return EVM_KINDS.includes(kind) ? a.toLowerCase() : a;
 }
 
-function pickCoinData(body: any) {
-  // Şemanla birebir uyumlu alanlar:
+function pickBody(body: any) {
+  const kind = body?.chainKind as ChainKind;
   return {
     name: String(body?.name ?? ''),
     symbol: String(body?.symbol ?? ''),
-    // slug yoksa API içinde üretilecek
-    chainKind: body?.chainKind as ChainKind,
+    chainKind: kind,
     chainId: body?.chainId === '' || body?.chainId === undefined ? null : Number(body.chainId),
-    address: body?.address ? String(body.address) : null,
+    address: normalizeAddress(kind, body?.address),
     logoURI: body?.logoURI ? String(body.logoURI) : null,
   };
 }
@@ -40,16 +37,22 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const data = pickCoinData(body);
+  try {
+    const body = await req.json();
+    const data = pickBody(body);
 
-  // slug otomatik
-  const requested = String(body?.slug ?? '').trim();
-  const base = requested || slugify(data.name || data.symbol);
-  const slug = await ensureUniqueSlug(base);
+    // slug otomatik
+    const base = slugify(data.name || data.symbol);
+    const slug = await ensureUniqueSlug(base || 'coin');
 
-  const created = await prisma.coin.create({
-    data: { ...data, slug },
-  });
-  return NextResponse.json(created);
+    const created = await prisma.coin.create({ data: { ...data, slug } });
+    return NextResponse.json(created);
+  } catch (err: any) {
+    // Duplicate (adres+chain ya da slug) → 409
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+      return NextResponse.json({ error: 'Duplicate: same address already exists on this chain (or slug already taken).' }, { status: 409 });
+    }
+    console.error('POST /api/admin/coins', err);
+    return NextResponse.json({ error: 'POST failed' }, { status: 500 });
+  }
 }

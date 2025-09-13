@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { headers } from 'next/headers';
+import DeleteCoinButton from './parts/DeleteCoinButton';
 
 function getBaseUrl() {
   const h = headers();
@@ -26,9 +27,7 @@ export default async function CoinsPage() {
     <main className="mx-auto max-w-5xl p-6">
       <div className="flex items-center justify-between mb-4">
         <h1 className="text-xl font-semibold">Coins</h1>
-        <Link href="/admin/coins/new" className="rounded bg-primary px-3 py-2 text-black font-medium">
-          Add New
-        </Link>
+        <Link href="/admin/coins/new" className="rounded bg-primary px-3 py-2 text-black font-medium">Add New</Link>
       </div>
       <div className="rounded-xl border overflow-hidden">
         <table className="w-full text-sm">
@@ -47,12 +46,10 @@ export default async function CoinsPage() {
                 <td className="p-2">{c.name}</td>
                 <td className="p-2 text-center">{c.symbol}</td>
                 <td className="p-2 text-center">{c.chainKind}</td>
-                <td className="p-2 text-center">
-                  {c.address ? `${c.address.slice(0,6)}…${c.address.slice(-4)}` : '-'}
-                </td>
-                <td className="p-2 text-center">
-                  <Link href={`/admin/coins/${c.id}/edit`} className="underline mr-3">Edit</Link>
-                  {/* DeleteCoinButton aynı kalsın */}
+                <td className="p-2 text-center">{c.address ? `${c.address.slice(0,6)}…${c.address.slice(-4)}` : '-'}</td>
+                <td className="p-2 text-center space-x-3">
+                  <Link href={`/admin/coins/${c.id}/edit`} className="underline">Edit</Link>
+                  <DeleteCoinButton id={c.id} />
                 </td>
               </tr>
             ))}
