@@ -1,7 +1,8 @@
 import Link from 'next/link';
 
 async function getCoins() {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins`, { cache: 'no-store' });
+  const res = await fetch('/api/admin/coins', { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to load coins');
   return res.json();
 }
 
@@ -39,7 +40,7 @@ export default async function CoinsPage() {
                       className="underline text-red-500"
                       formAction={async () => {
                         'use server';
-                        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins/${c.id}`, { method: 'DELETE' });
+                        await fetch(`/api/admin/coins/${c.id}`, { method: 'DELETE' });
                       }}
                     >
                       Delete

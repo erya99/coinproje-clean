@@ -3,7 +3,7 @@ import CoinForm from '@/components/admin/CoinForm';
 export default function NewCoinPage() {
   async function createCoin(data: any) {
     'use server';
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins`, {
+    await fetch('/api/admin/coins', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),

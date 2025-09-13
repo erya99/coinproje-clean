@@ -1,7 +1,8 @@
 import CoinForm from '@/components/admin/CoinForm';
 
 async function getCoin(id: string) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins/${id}`, { cache: 'no-store' });
+  const res = await fetch(`/api/admin/coins/${id}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error('Failed to load coin');
   return res.json();
 }
 
@@ -10,7 +11,7 @@ export default async function EditCoinPage({ params }: { params: { id: string } 
 
   async function updateCoin(data: any) {
     'use server';
-    await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins/${params.id}`, {
+    await fetch(`/api/admin/coins/${params.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
