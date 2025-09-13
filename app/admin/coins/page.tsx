@@ -1,65 +1,56 @@
-/* PATH: app/admin/coins/page.tsx */
-'use client';
+import Link from 'next/link';
 
-import { useState } from 'react';
-import { CHAIN_KEYS } from '@/lib/chains';
+async function getCoins() {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins`, { cache: 'no-store' });
+  return res.json();
+}
 
-export default function AdminCoinsPage() {
-  const [pending, setPending] = useState(false);
-  const [ok, setOk] = useState<boolean | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+export default async function CoinsPage() {
+  const coins = await getCoins();
 
   return (
-    <div className="mx-auto max-w-xl space-y-4">
-      <h1 className="text-2xl font-semibold">Add a Coin</h1>
-
-      {ok && <div className="rounded-lg border border-green-500/30 bg-green-500/10 px-3 py-2 text-sm">Saved ✓</div>}
-      {err && <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm">{err}</div>}
-
-      {/* DİKKAT: doğru action /api/admin/coins */}
-      <form
-        action="/api/admin/coins"
-        method="post"
-        encType="multipart/form-data"
-        className="space-y-4"
-        onSubmit={() => { setPending(true); setOk(null); setErr(null); }}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input name="name"  placeholder="Name"   className="input" required />
-          <input name="symbol" placeholder="Symbol" className="input" required />
-          <select name="chainKind" className="input" required>
-            <option value="">Select chain</option>
-            {CHAIN_KEYS.map(k => (
-              <option key={k} value={k}>{k}</option>
+    <main className="mx-auto max-w-5xl p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">Coins</h1>
+        <Link href="/admin/coins/new" className="rounded bg-primary px-3 py-2 text-black font-medium">Add New</Link>
+      </div>
+      <div className="rounded-xl border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-muted/50">
+            <tr>
+              <th className="p-2 text-left">Name</th>
+              <th className="p-2">Symbol</th>
+              <th className="p-2">Chain</th>
+              <th className="p-2">Address</th>
+              <th className="p-2">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {coins.map((c: any) => (
+              <tr key={c.id} className="border-t">
+                <td className="p-2">{c.name}</td>
+                <td className="p-2 text-center">{c.symbol}</td>
+                <td className="p-2 text-center">{c.chainKind}</td>
+                <td className="p-2 text-center">{c.address ? `${c.address.slice(0,6)}…${c.address.slice(-4)}` : '-'}</td>
+                <td className="p-2 text-center">
+                  <Link href={`/admin/coins/${c.id}/edit`} className="underline mr-3">Edit</Link>
+                  <form className="inline">
+                    <button
+                      className="underline text-red-500"
+                      formAction={async () => {
+                        'use server';
+                        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/api/admin/coins/${c.id}`, { method: 'DELETE' });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </form>
+                </td>
+              </tr>
             ))}
-          </select>
-          <input name="address" placeholder="Address (optional)" className="input" />
-        </div>
-
-        {/* Logo dosyası yükleme */}
-        <div>
-          <input type="file" name="logo" accept="image/*" />
-        </div>
-
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded-lg bg-primary px-4 py-2 text-white hover:opacity-90 disabled:opacity-50"
-        >
-          {pending ? 'Saving…' : 'Save'}
-        </button>
-      </form>
-
-      <style jsx>{`
-        .input {
-          width: 100%;
-          border-radius: 0.5rem;
-          border: 1px solid var(--border);
-          background: var(--card);
-          padding: 0.5rem 0.75rem;
-          outline: none;
-        }
-      `}</style>
-    </div>
+          </tbody>
+        </table>
+      </div>
+    </main>
   );
 }

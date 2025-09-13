@@ -1,44 +1,35 @@
 'use client';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+export default function AdminLoginPage() {
+  const [pwd, setPwd] = useState('');
+  const router = useRouter();
 
-function LoginFormInner() {
-  const searchParams = useSearchParams();
-  const error = searchParams.get('error');
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    const res = await fetch('/api/admin/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: pwd }),
+    });
+    if (res.ok) router.push('/admin');
+    else alert('Wrong password');
+  }
 
   return (
-    <div className="mx-auto max-w-sm space-y-4">
-      <h1 className="text-xl font-semibold">Admin Login</h1>
-
-      {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">
-          {error}
-        </div>
-      )}
-
-      {/* >>> BURASI ÖNEMLİ: /api/admin/login <<< */}
-      <form method="post" action="/api/admin/login" className="space-y-3">
+    <div className="mx-auto max-w-sm p-6">
+      <h1 className="text-lg font-semibold mb-3">Admin Login</h1>
+      <form onSubmit={submit} className="space-y-3">
         <input
-          type="text" name="username" placeholder="Username"
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none" required
+          type="password"
+          value={pwd}
+          onChange={(e) => setPwd(e.target.value)}
+          className="w-full rounded border bg-background p-2"
+          placeholder="Password"
         />
-        <input
-          type="password" name="password" placeholder="Password"
-          className="w-full rounded-lg border border-border bg-card px-3 py-2 outline-none" required
-        />
-        <button type="submit" className="w-full rounded-lg bg-primary px-3 py-2 text-white hover:opacity-90">
-          Sign in
-        </button>
+        <button className="rounded bg-primary px-4 py-2 text-black font-medium">Login</button>
       </form>
     </div>
-  );
-}
-
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="mx-auto max-w-sm">Loading…</div>}>
-      <LoginFormInner />
-    </Suspense>
   );
 }
