@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ChainKind } from '@prisma/client';
+import { absUrl } from '@/lib/abs-url';
 
 export default function NewCoinForm() {
   const [pending, setPending] = useState(false);
@@ -12,7 +13,7 @@ export default function NewCoinForm() {
     setPending(true); setErr(null);
     const fd = new FormData(e.currentTarget);
     const payload = Object.fromEntries(fd.entries());
-    const res = await fetch('/api/admin/coins', {
+    const res = await fetch(absUrl('/api/admin/coins'), {
       method: 'POST',
       body: JSON.stringify(payload),
       headers: { 'Content-Type': 'application/json' }
